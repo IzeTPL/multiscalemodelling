@@ -1,13 +1,15 @@
 package pl.edu.agh.multiscalemodelling.engine.logic
 
-import com.badlogic.gdx.graphics.Color
-import pl.edu.agh.multiscalemodelling.model.ICell
 import java.util.List
+
+import com.badlogic.gdx.graphics.Color
+import pl.edu.agh.multiscalemodelling.engine.logic.State.State
+import pl.edu.agh.multiscalemodelling.model.ICell
 
 class Cell(x: Int, y: Int) extends ICell {
 
-  var currentState: State = _
-  var nextState: State = _
+  var currentState: State.Value = State.EMPTY
+  var nextState: State.Value = State.EMPTY
   var position: Point = _
   var neighbors: List[Cell] = _
   var color: Color = _
@@ -16,8 +18,6 @@ class Cell(x: Int, y: Int) extends ICell {
 
   position = new Point(x, y)
   color = new Color(Color.BLACK)
-  currentState = State.EMPTY
-  nextState = State.EMPTY
 
   def getSeedID: Integer = seedID
 

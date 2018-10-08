@@ -9,6 +9,7 @@ import scala.util.Random
 object NaiveSeedsGrowthCell {
 
   var seedList: mutable.HashMap[Int, Color] = _
+
   def getSeedList: mutable.HashMap[Int, Color] = seedList
 
 }
@@ -65,6 +66,35 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
   }
 
+  def swap(): Unit = currentState match {
+
+    case State.ALIVE => {
+
+      nextState = State.EMPTY
+      nextColor = Color.BLACK
+      nextSeedID = 0
+
+    }
+
+    case _ => {
+
+      val random = new Random
+      nextState = State.ALIVE
+      nextColor = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
+
+      nextSeedID = {
+        NaiveSeedsGrowthBoard.newID += 1
+        NaiveSeedsGrowthBoard.newID
+      }
+
+      NaiveSeedsGrowthCell.getSeedList.put(NaiveSeedsGrowthBoard.newID, nextColor)
+
+    }
+
+      update()
+
+  }
+
   override def update(): Unit = {
 
     (currentState, nextState) match {
@@ -93,36 +123,7 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
       case _ =>
 
     }
-      super.update()
-
-  }
-
-  def swap(): Unit = currentState match {
-
-    case State.ALIVE => {
-
-      nextState = State.EMPTY
-      nextColor = Color.BLACK
-      nextSeedID = 0
-
-    }
-
-    case _ => {
-
-      val random = new Random
-      nextState = State.ALIVE
-      nextColor = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
-
-      nextSeedID = {
-        NaiveSeedsGrowthBoard.newID += 1
-        NaiveSeedsGrowthBoard.newID
-      }
-
-      NaiveSeedsGrowthCell.getSeedList.put(NaiveSeedsGrowthBoard.newID, nextColor)
-
-    }
-
-      update()
+    super.update()
 
   }
 
