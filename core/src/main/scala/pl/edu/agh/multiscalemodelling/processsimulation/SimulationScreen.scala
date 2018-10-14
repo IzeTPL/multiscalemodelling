@@ -28,9 +28,12 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var clearButton: Button = _
   var nextButton: Button = _
   var resizeButton: Button = _
+  var importButton: Button = _
+  var exportButton: Button = _
   var neighbourhoodSelection: SelectBox[String] = _
   var boundaryConditionSelection: SelectBox[String] = _
   var seedTypeSelection: SelectBox[String] = _
+  var fileTypeSelection: SelectBox[String] = _
   var naiveSeedsGrowthLogic: NaiveSeedsGrowthLogic = _
   widthLabel = new Label("width", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   heightLabel = new Label("height", new Label.LabelStyle(new BitmapFont, Color.WHITE))
@@ -67,11 +70,15 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   clearButton = new TextButton("Clear", textButtonStyle)
   nextButton = new TextButton("Next", textButtonStyle)
   resizeButton = new TextButton("Resize", textButtonStyle)
+  importButton = new TextButton("Import", textButtonStyle)
+  exportButton = new TextButton("Export", textButtonStyle)
   seedButton.addListener(new ClickListener)
   toggleButton.addListener(new ClickListener)
   clearButton.addListener(new ClickListener)
   nextButton.addListener(new ClickListener)
   resizeButton.addListener(new ClickListener)
+  importButton.addListener(new ClickListener)
+  exportButton.addListener(new ClickListener)
   val selectBoxStyle = new SelectBox.SelectBoxStyle
   selectBoxStyle.font = new BitmapFont
   selectBoxStyle.fontColor = Color.BLACK
@@ -121,6 +128,16 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
         seedLabel.setText("Radius")
     }
   })
+
+  fileTypeSelection = new SelectBox[String](selectBoxStyle)
+  fileTypeSelection.setItems("Json", "Bitmap")
+  fileTypeSelection.setSelectedIndex(0)
+  fileTypeSelection.addListener(new ChangeListener {
+    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = seedTypeSelection.getSelectedIndex match {
+      case 0 =>
+    }
+  })
+
   table.add(widthLabel).expandX
   table.add(heightLabel).expandX
   table.row
@@ -146,9 +163,13 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(timeField).expandX.fill
   table.row
   table.add(showProgress).expandX.fill
+  table.add(importButton).expandX.fill
   table.row
   table.add(showBorders).expandX.fill
-  naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(100, 100)
+  table.add(exportButton).expandX.fill
+  table.row
+  table.add(fileTypeSelection).expand.fill
+  naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(700, 700)
   logic = naiveSeedsGrowthLogic
   logic.getBoard.setNeighbourhood(logic.getBoard.getNeighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.getBoundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
 
@@ -199,5 +220,9 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
       logic.getBoard.setNeighbourhood(logic.getBoard.getNeighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.getBoundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
     }
 
+    if(importButton.isPressed && Gdx.input.justTouched) logic.getBoard.load()
+    if(exportButton.isPressed && Gdx.input.justTouched) logic.getBoard.save()
+
   }
+
 }

@@ -4,7 +4,8 @@ import java.util
 import java.util.{Objects, Random}
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.{Color, Pixmap, Texture}
+import com.badlogic.gdx.files.FileHandle
+import com.badlogic.gdx.graphics.{Color, Pixmap, PixmapIO, Texture}
 import pl.edu.agh.multiscalemodelling.engine.logic.boudarycondition.{BoundaryCondition, FixedBoundaryCondition, PeriodicBoudaryCondition}
 import pl.edu.agh.multiscalemodelling.engine.logic.neighbourhood._
 
@@ -36,6 +37,7 @@ abstract class Board() {
     }
   }
 
+  //TODO
   def randomize(cell: Cell, random: Random): Unit = if (random.nextInt(((size.x * size.y) * 0.01f).toInt) == 1) cell.setNextState(State.ALIVE)
 
   def clear(): Unit = {
@@ -56,7 +58,7 @@ abstract class Board() {
       import scala.collection.JavaConversions._
       for (neighbor <- cell.getNeighbors) {
         if (Objects.equals(cell.color, neighbor.color)) {
-          sameID += 1;
+          sameID += 1
           sameID - 1
         }
       }
@@ -68,8 +70,42 @@ abstract class Board() {
       board.drawPixel(cell.getPosition.x, cell.getPosition.y)
     }
     val texture = new Texture(board)
-    board.dispose()
+    //board.dispose()
     texture
+  }
+
+  def save(): Unit = {
+
+    val texture = draw(progress = false, borders = false)
+    PixmapIO.writePNG(new FileHandle("exported.png"), texture.getTextureData.consumePixmap())
+
+  }
+
+  def load(): Unit = {
+
+    val pixels = new Texture(Gdx.files.absolute("exported.png")).getTextureData.consumePixmap()
+
+    var i = 0
+
+    while(i < pixels.getWidth) {
+
+      var j = 0
+
+      while(j < pixels.getHeight) {
+
+        val pixel: Int = pixels.getPixel(i, j)
+        val color: Color = new Color(pixel)
+
+        j+=1
+        j-1
+
+      }
+
+      i+=1
+      i-1
+
+    }
+
   }
 
   def setNeighbourhood(neighbourhood: Neighborhood, boundaryCondition: BoundaryCondition): Unit = {
