@@ -1,11 +1,9 @@
 package pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth
 
-import com.badlogic.gdx.graphics.Color
-import pl.edu.agh.multiscalemodelling.engine.logic.Board
-import pl.edu.agh.multiscalemodelling.engine.logic.Cell
-import pl.edu.agh.multiscalemodelling.engine.logic.Point
-import pl.edu.agh.multiscalemodelling.engine.logic.State
 import java.util.Random
+
+import com.badlogic.gdx.graphics.Color
+import pl.edu.agh.multiscalemodelling.engine.logic.{Board, Cell, Point, State}
 
 object NaiveSeedsGrowthBoard {
   var newID = 0
@@ -22,11 +20,11 @@ class NaiveSeedsGrowthBoard(val x: Int, val y: Int) extends Board {
       j < size.y
     }) {
       cells.add(new NaiveSeedsGrowthCell(i, j))
-        j += 1
-        j - 1
+      j += 1
+      j - 1
     }
-      i += 1
-      i - 1
+    i += 1
+    i - 1
   }
 
   override def clear(): Unit = {
@@ -83,48 +81,48 @@ class NaiveSeedsGrowthBoard(val x: Int, val y: Int) extends Board {
           if (cell.getCurrentState eq State.ALIVE) cell.setColor(new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1))
         }
         distanceX += 1
-          j += 1
-          j - 1
+        j += 1
+        j - 1
 
       }
       distanceY += 1
-        i += 1
-        i - 1
+      i += 1
+      i - 1
 
     }
   }
 
   def radiusSeed(radius: Int): Unit = {
+
     val random = new Random
     import scala.collection.JavaConversions._
     for (cell <- cells) {
       var inside = false
       var x = cell.getPosition.x - radius
       while ( {
-        x < cell.getPosition.x + radius
+        x < cell.getPosition.x + radius && !inside
       }) {
         val yspan = radius * Math.sin(Math.acos((cell.getPosition.x - x) / radius)).round.toInt
         var y = cell.getPosition.y - yspan
         while ( {
-          y < cell.getPosition.y + yspan
+          y < cell.getPosition.y + yspan && !inside
         }) {
           val position = new Point(x, y)
+
           if (position.x < 0) position.x_$eq(size.x - 1)
           if (position.y < 0) position.y_$eq(size.y - 1)
           if (position.x >= size.x) position.x_$eq(0)
           if (position.y >= size.y) position.y_$eq(0)
           if (cells.get(position.x * size.x + position.y).getCurrentState eq State.ALIVE) inside = true
-          if (inside) {
-            y += 1
-            y - 1
-          }
-          if (inside) {
-            x += 1
-            x - 1
-          }
-          if (!inside) randomize(cell, random)
+          y += 1
+          y - 1
         }
+        x += 1
+        x - 1
       }
+      if (!inside) randomize(cell, random)
     }
+
   }
+
 }

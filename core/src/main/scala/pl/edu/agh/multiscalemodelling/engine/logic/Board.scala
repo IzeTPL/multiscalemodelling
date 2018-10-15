@@ -37,15 +37,18 @@ abstract class Board() {
     }
   }
 
-  //TODO
+  //TODO amount of nucleons and not repetitive places
+  //WTF EVEN IS THIS SHIT and who did that???
   def randomize(cell: Cell, random: Random): Unit = if (random.nextInt(((size.x * size.y) * 0.01f).toInt) == 1) cell.setNextState(State.ALIVE)
 
   def clear(): Unit = {
+
     import scala.collection.JavaConversions._
     for (cell <- cells) {
       cell.setNextState(State.EMPTY)
       cell.update()
     }
+
   }
 
   def draw(progress: Boolean, borders: Boolean): Texture = {
@@ -77,13 +80,46 @@ abstract class Board() {
   def save(): Unit = {
 
     val texture = draw(progress = false, borders = false)
-    PixmapIO.writePNG(new FileHandle("exported.png"), texture.getTextureData.consumePixmap())
+
+    import javax.swing.JFileChooser
+    import javax.swing.JFrame
+
+        val chooser = new JFileChooser
+        val f = new JFrame
+        f.setVisible(true)
+        f.toFront()
+        f.setVisible(false)
+        val res = chooser.showSaveDialog(f)
+        f.dispose()
+        if (res == JFileChooser.APPROVE_OPTION) {
+          PixmapIO.writePNG(new FileHandle(chooser.getSelectedFile.getName + ".png"), texture.getTextureData.consumePixmap())
+        }
 
   }
 
   def load(): Unit = {
 
-    val pixels = new Texture(Gdx.files.absolute("exported.png")).getTextureData.consumePixmap()
+    var path: String = "aaa.png"
+
+    import javax.swing.JFileChooser
+    import javax.swing.JFrame
+
+        val chooser = new JFileChooser
+        val f = new JFrame
+        f.setVisible(true)
+        f.toFront()
+        f.setVisible(false)
+        val res = chooser.showOpenDialog(f)
+        f.dispose()
+        if (res == JFileChooser.APPROVE_OPTION) {
+
+          path = chooser.getSelectedFile.getName
+
+        }
+
+    val texture = new Texture(Gdx.files.absolute("aaa.png")).getTextureData
+    texture.prepare()
+    val pixels = texture.consumePixmap
 
     var i = 0
 
@@ -93,8 +129,10 @@ abstract class Board() {
 
       while(j < pixels.getHeight) {
 
-        val pixel: Int = pixels.getPixel(i, j)
-        val color: Color = new Color(pixel)
+
+        cells.get(i*size.x+j).nextColor = new Color(pixels.getPixel(i, j))
+        cells.get(i*size.x+j).nextState = State.ALIVE
+        cells.get(i*size.x+j).update()
 
         j+=1
         j-1
@@ -118,6 +156,51 @@ abstract class Board() {
   def getGreaterDimesion: Int = {
     if (size.x > size.y) return size.x
     size.y
+  }
+
+  def addInclusions(inclusionType: Int, inclusionAmount: Int, inclusionSize: Int): Unit = {
+
+    val random = new Random
+    var loop = inclusionAmount
+
+    while(loop > 0) {
+
+      val xpos = random.nextInt(size.x)
+      val ypos = random.nextInt(size.y)
+      var x = xpos - inclusionSize + 1
+
+      while (x < xpos + inclusionSize) {
+
+        var yspan = (inclusionSize * Math.sin( Math.acos( (xpos - x).toDouble / inclusionSize.toDouble) )).floor.toInt
+
+        println(yspan)
+        var y = ypos - yspan + 1
+
+        while (y < ypos + yspan) {
+
+          val position = new Point(x, y)
+
+          if (position.x < 0) position.x_$eq(size.x - 1)
+          if (position.y < 0) position.y_$eq(size.y - 1)
+          if (position.x >= size.x) position.x_$eq(0)
+          if (position.y >= size.y) position.y_$eq(0)
+          cells.get(position.x * size.x + position.y).nextColor = Color.BLACK
+          cells.get(position.x * size.x + position.y).nextState = State.INCLUSION
+          cells.get(position.x * size.x + position.y).update()
+
+
+          y += 1
+
+        }
+
+        x += 1
+
+      }
+
+      loop -= 1
+
+    }
+
   }
 
   def getSize: Point = size

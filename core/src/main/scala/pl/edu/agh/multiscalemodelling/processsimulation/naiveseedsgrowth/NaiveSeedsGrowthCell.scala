@@ -120,6 +120,13 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
       }
 
+      case (_, State.INCLUSION) => {
+
+        color = Color.WHITE
+        seedID = 0
+
+      }
+
       case _ =>
 
     }

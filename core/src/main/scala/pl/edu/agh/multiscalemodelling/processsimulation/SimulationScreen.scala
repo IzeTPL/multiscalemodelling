@@ -17,9 +17,13 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var heightField: TextField = _
   var seedField: TextField = _
   var timeField: TextField = _
+  var inclusionAmountField: TextField = _
+  var inclusionSizeField: TextField = _
   var widthLabel: Label = _
   var heightLabel: Label = _
   var seedLabel: Label = _
+  var inclusionAmountLabel: Label = _
+  var inclusionSizeLabel: Label = _
   var continousSeeding: CheckBox = _
   var showProgress: CheckBox = _
   var showBorders: CheckBox = _
@@ -30,15 +34,19 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var resizeButton: Button = _
   var importButton: Button = _
   var exportButton: Button = _
+  var addInclusionsButton: Button = _
   var neighbourhoodSelection: SelectBox[String] = _
   var boundaryConditionSelection: SelectBox[String] = _
   var seedTypeSelection: SelectBox[String] = _
   var fileTypeSelection: SelectBox[String] = _
+  var inclusionType: SelectBox[String] = _
   var naiveSeedsGrowthLogic: NaiveSeedsGrowthLogic = _
   widthLabel = new Label("width", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   heightLabel = new Label("height", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   seedLabel = new Label("", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   seedLabel.setVisible(false)
+  inclusionAmountLabel = new Label("Inclusions amount", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+  inclusionSizeLabel = new Label("Inclusion size", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   val textFieldStyle = new TextField.TextFieldStyle
   textFieldStyle.font = new BitmapFont
   textFieldStyle.fontColor = Color.BLACK
@@ -47,6 +55,8 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   heightField = new TextField("700", textFieldStyle)
   seedField = new TextField("5", textFieldStyle)
   timeField = new TextField("1", textFieldStyle)
+  inclusionAmountField = new TextField("1", textFieldStyle)
+  inclusionSizeField = new TextField("2", textFieldStyle)
   seedField.setVisible(false)
   val textButtonStyle = new TextButton.TextButtonStyle
   textButtonStyle.font = new BitmapFont
@@ -72,6 +82,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   resizeButton = new TextButton("Resize", textButtonStyle)
   importButton = new TextButton("Import", textButtonStyle)
   exportButton = new TextButton("Export", textButtonStyle)
+  addInclusionsButton = new TextButton("Add inclusions", textButtonStyle)
   seedButton.addListener(new ClickListener)
   toggleButton.addListener(new ClickListener)
   clearButton.addListener(new ClickListener)
@@ -79,6 +90,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   resizeButton.addListener(new ClickListener)
   importButton.addListener(new ClickListener)
   exportButton.addListener(new ClickListener)
+  addInclusionsButton.addListener(new ClickListener)
   val selectBoxStyle = new SelectBox.SelectBoxStyle
   selectBoxStyle.font = new BitmapFont
   selectBoxStyle.fontColor = Color.BLACK
@@ -138,6 +150,16 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     }
   })
 
+  inclusionType = new SelectBox[String](selectBoxStyle)
+  inclusionType.setItems("Circle", "Square")
+  inclusionType.setSelectedIndex(0)
+  inclusionType.addListener(new ChangeListener {
+    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = seedTypeSelection.getSelectedIndex match {
+      case 0 =>
+      case 1 =>
+    }
+  })
+
   table.add(widthLabel).expandX
   table.add(heightLabel).expandX
   table.row
@@ -168,8 +190,18 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(showBorders).expandX.fill
   table.add(exportButton).expandX.fill
   table.row
-  table.add(fileTypeSelection).expand.fill
-  naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(700, 700)
+  table.add(fileTypeSelection).expandX.fill
+  table.add(inclusionType).expandX.fill
+  table.row
+  table.add(inclusionAmountLabel).expandX.fill
+  table.add(inclusionAmountField).expandX.fill
+  table.row
+  table.add(inclusionSizeLabel).expandX.fill
+  table.add(inclusionSizeField).expandX.fill
+  table.row
+  table.add(addInclusionsButton).expandX.fill
+
+  naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(50, 50)
   logic = naiveSeedsGrowthLogic
   logic.getBoard.setNeighbourhood(logic.getBoard.getNeighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.getBoundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
 
@@ -222,6 +254,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
 
     if(importButton.isPressed && Gdx.input.justTouched) logic.getBoard.load()
     if(exportButton.isPressed && Gdx.input.justTouched) logic.getBoard.save()
+    if(addInclusionsButton.isPressed && Gdx.input.justTouched) logic.getBoard.addInclusions(inclusionType.getSelectedIndex, inclusionAmountField.getText.toInt, inclusionSizeField.getText.toInt)
 
   }
 
