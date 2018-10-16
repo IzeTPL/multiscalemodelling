@@ -113,16 +113,23 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
       }
 
-      case (State.EMPTY, _) => {
+      case (State.EMPTY, State.EMPTY) => {
+
+        color = Color.WHITE
+        seedID = 0
+
+      }
+
+      case (State.ALIVE, State.INCLUSION) => {
 
         color = Color.BLACK
         seedID = 0
 
       }
 
-      case (_, State.INCLUSION) => {
+      case (State.EMPTY, State.INCLUSION) => {
 
-        color = Color.WHITE
+        color = Color.BLACK
         seedID = 0
 
       }

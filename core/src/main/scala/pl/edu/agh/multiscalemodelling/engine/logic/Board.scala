@@ -158,50 +158,134 @@ abstract class Board() {
     size.y
   }
 
-  def addInclusions(inclusionType: Int, inclusionAmount: Int, inclusionSize: Int): Unit = {
+  def addInclusions(inclusionType: Int, inclusionAmount: Int, inclusionSize: Int, started: Boolean): Unit = {
 
-    val random = new Random
-    var loop = inclusionAmount
+    inclusionType match {
 
-    while(loop > 0) {
-
-      val xpos = random.nextInt(size.x)
-      val ypos = random.nextInt(size.y)
-      var x = xpos - inclusionSize + 1
-
-      while (x < xpos + inclusionSize) {
-
-        var yspan = (inclusionSize * Math.sin( Math.acos( (xpos - x).toDouble / inclusionSize.toDouble) )).floor.toInt
-
-        println(yspan)
-        var y = ypos - yspan + 1
-
-        while (y < ypos + yspan) {
-
-          val position = new Point(x, y)
-
-          if (position.x < 0) position.x_$eq(size.x - 1)
-          if (position.y < 0) position.y_$eq(size.y - 1)
-          if (position.x >= size.x) position.x_$eq(0)
-          if (position.y >= size.y) position.y_$eq(0)
-          cells.get(position.x * size.x + position.y).nextColor = Color.BLACK
-          cells.get(position.x * size.x + position.y).nextState = State.INCLUSION
-          cells.get(position.x * size.x + position.y).update()
-
-
-          y += 1
-
-        }
-
-        x += 1
-
-      }
-
-      loop -= 1
+      case 0 => circleInclusions(inclusionAmount, inclusionSize, started)
+      case 1 => squareInclusions(inclusionAmount, inclusionSize, started)
 
     }
 
   }
+
+    def squareInclusions(inclusionAmount: Int, inclusionSize: Int, started: Boolean): Unit = {
+
+      val random = new Random
+      var loop = inclusionAmount
+
+      while(loop > 0) {
+
+        val xpos = random.nextInt(size.x)
+        val ypos = random.nextInt(size.y)
+
+        var sameID = 0
+        import scala.collection.JavaConversions._
+        for (neighbor <- cells.get(xpos * size.x + ypos).getNeighbors) {
+          if (Objects.equals(cells.get(xpos * size.x + ypos).color, neighbor.color)) {
+            sameID += 1
+            sameID - 1
+          }
+        }
+
+        if (sameID != cells.get(xpos * size.x + ypos).getNeighbors.size && sameID > 0 || !started) {
+
+
+          var x = xpos - inclusionSize + 1
+
+          while (x < xpos + inclusionSize) {
+
+            var y = ypos - inclusionSize + 1
+
+            while (y < ypos + inclusionSize) {
+
+              val position = new Point(x, y)
+
+              if (position.x < 0) position.x_$eq(size.x - 1)
+              if (position.y < 0) position.y_$eq(size.y - 1)
+              if (position.x >= size.x) position.x_$eq(0)
+              if (position.y >= size.y) position.y_$eq(0)
+
+              cells.get(position.x * size.x + position.y).nextState = State.INCLUSION
+              cells.get(position.x * size.x + position.y).update()
+
+
+              y += 1
+
+            }
+
+            x += 1
+
+          }
+
+          loop -= 1
+
+        }
+
+      }
+
+
+    }
+
+    def circleInclusions(inclusionAmount: Int, inclusionSize: Int, started: Boolean): Unit = {
+
+      val random = new Random
+      var loop = inclusionAmount
+
+      while(loop > 0) {
+
+        val xpos = random.nextInt(size.x)
+        val ypos = random.nextInt(size.y)
+        var x = xpos - inclusionSize + 1
+
+        var sameID = 0
+        import scala.collection.JavaConversions._
+        for (neighbor <- cells.get(xpos * size.x + ypos).getNeighbors) {
+          if (Objects.equals(cells.get(xpos * size.x + ypos).color, neighbor.color)) {
+            sameID += 1
+            sameID - 1
+          }
+        }
+
+        if (sameID != cells.get(xpos * size.x + ypos).getNeighbors.size && sameID > 0 || !started) {
+
+
+          while (x < xpos + inclusionSize) {
+
+            var yspan = (inclusionSize * Math.sin(Math.acos((xpos - x).toDouble / inclusionSize.toDouble))).floor.toInt
+
+            println(yspan)
+            var y = ypos - yspan + 1
+
+            while (y < ypos + yspan) {
+
+              val position = new Point(x, y)
+
+              if (position.x < 0) position.x_$eq(size.x - 1)
+              if (position.y < 0) position.y_$eq(size.y - 1)
+              if (position.x >= size.x) position.x_$eq(0)
+              if (position.y >= size.y) position.y_$eq(0)
+
+              cells.get(position.x * size.x + position.y).nextState = State.INCLUSION
+              cells.get(position.x * size.x + position.y).update()
+
+
+              y += 1
+
+            }
+
+            x += 1
+
+          }
+
+          loop -= 1
+
+        }
+
+      }
+
+
+    }
 
   def getSize: Point = size
 

@@ -4,8 +4,10 @@ abstract class Logic() {
 
   var board: Board = _
   var isPaused = false
+  var started = false
 
   isPaused = true
+  started = false
 
   def pause(): Unit = isPaused = !isPaused
 

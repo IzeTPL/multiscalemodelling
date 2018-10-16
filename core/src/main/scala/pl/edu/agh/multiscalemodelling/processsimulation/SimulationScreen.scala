@@ -72,10 +72,10 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   pixmap.fill()
   val drawable2 = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)))
   val checkBoxStyle = new CheckBox.CheckBoxStyle(drawable1, drawable2, new BitmapFont, Color.WHITE)
-  continousSeeding = new CheckBox("Continous seeding", checkBoxStyle)
+  continousSeeding = new CheckBox("Continous nucleons", checkBoxStyle)
   showProgress = new CheckBox("Show progress", checkBoxStyle)
   showBorders = new CheckBox("Show borders", checkBoxStyle)
-  seedButton = new TextButton("Seed", textButtonStyle)
+  seedButton = new TextButton("Place nucleons", textButtonStyle)
   toggleButton = new TextButton("Play", textButtonStyle)
   clearButton = new TextButton("Clear", textButtonStyle)
   nextButton = new TextButton("Next", textButtonStyle)
@@ -216,6 +216,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     showBordersbool = showBorders.isChecked
     update(delta)
     if (!logic.isPaused) {
+      logic.started=true
       logic.iterate()
       if (timer > timeField.getText.toFloat && continousSeeding.isChecked) {
         timer = 0
@@ -254,7 +255,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
 
     if(importButton.isPressed && Gdx.input.justTouched) logic.getBoard.load()
     if(exportButton.isPressed && Gdx.input.justTouched) logic.getBoard.save()
-    if(addInclusionsButton.isPressed && Gdx.input.justTouched) logic.getBoard.addInclusions(inclusionType.getSelectedIndex, inclusionAmountField.getText.toInt, inclusionSizeField.getText.toInt)
+    if(addInclusionsButton.isPressed && Gdx.input.justTouched) logic.getBoard.addInclusions(inclusionType.getSelectedIndex, inclusionAmountField.getText.toInt, inclusionSizeField.getText.toInt, logic.started)
 
   }
 

@@ -17,7 +17,7 @@ class Cell(x: Int, y: Int) extends ICell {
   var seedID: Integer = _
 
   position = new Point(x, y)
-  color = new Color(Color.BLACK)
+  color = new Color(Color.WHITE)
 
   def getSeedID: Integer = seedID
 
