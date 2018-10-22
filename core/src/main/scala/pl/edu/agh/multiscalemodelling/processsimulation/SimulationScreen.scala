@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui._
 import com.badlogic.gdx.scenes.scene2d.utils.{ChangeListener, ClickListener, TextureRegionDrawable}
 import pl.edu.agh.multiscalemodelling.engine.Application
+import pl.edu.agh.multiscalemodelling.engine.logic.neighbourhood.MooreNeighbourHood
 import pl.edu.agh.multiscalemodelling.engine.render.{AbstractScreen, DrawableColor}
 import pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth.{NaiveSeedsGrowthBoard, NaiveSeedsGrowthLogic}
 
@@ -113,14 +114,14 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   neighbourhoodSelection.setItems("Moore")
   neighbourhoodSelection.setSelectedIndex(0)
   neighbourhoodSelection.addListener(new ChangeListener() {
-    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = logic.getBoard.setNeighbourhood(logic.getBoard.getNeighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.getBoundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
+    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = logic.getBoard.setNeighbourhood(logic.getBoard.neighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
   })
   boundaryConditionSelection = new SelectBox[String](selectBoxStyle)
   boundaryConditionSelection.setItems(//"Fixed",
     "Periodic")
   boundaryConditionSelection.setSelectedIndex(0)
   boundaryConditionSelection.addListener(new ChangeListener() {
-    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = logic.getBoard.setNeighbourhood(logic.getBoard.getNeighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.getBoundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
+    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = logic.getBoard.setNeighbourhood(logic.getBoard.neighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
   })
   seedTypeSelection = new SelectBox[String](selectBoxStyle)
   seedTypeSelection.setItems("Random seed", "Regular Seed", "Random with radius")
@@ -201,9 +202,9 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.row
   table.add(addInclusionsButton).expandX.fill
 
-  naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(50, 50)
+  naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(300, 300)
   logic = naiveSeedsGrowthLogic
-  logic.getBoard.setNeighbourhood(logic.getBoard.getNeighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.getBoundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
+  logic.getBoard.setNeighbourhood(MooreNeighbourHood, logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
 
   override def update(delta: Float): Unit = {
     super.update(delta)
@@ -232,9 +233,9 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
 
   def handleInput(): Unit = {
     if (Gdx.input.justTouched) {
-      var vector2 = new Vector2(Gdx.input.getX, Gdx.graphics.getHeight - Gdx.input.getY)
+      var vector2 = new Vector2(Gdx.input.getX.toFloat, Gdx.graphics.getHeight.toFloat - Gdx.input.getY)
       vector2 = cellViewport.unproject(vector2)
-      if (vector2.x > 0 && vector2.y > 0) logic.click((vector2.x / (Gdx.graphics.getHeight / logic.getBoard.getSize.x)).toInt, (vector2.y / (Gdx.graphics.getHeight / logic.getBoard.getSize.y)).toInt)
+      if (vector2.x > 0 && vector2.y > 0) logic.click((vector2.x / (Gdx.graphics.getHeight / logic.getBoard.size.x)).toInt, (vector2.y / (Gdx.graphics.getHeight / logic.getBoard.size.y)).toInt)
     }
     if (Gdx.input.isKeyJustPressed(Input.Keys.P)) logic.pause()
     if (seedButton.isPressed && Gdx.input.justTouched) seedTypeSelection.getSelectedIndex match {
@@ -250,7 +251,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     if (nextButton.isPressed && Gdx.input.justTouched && logic.isPaused) logic.iterate()
     if (resizeButton.isPressed && Gdx.input.justTouched) {
       logic = new NaiveSeedsGrowthLogic(widthField.getText.toInt, heightField.getText.toInt)
-      logic.getBoard.setNeighbourhood(logic.getBoard.getNeighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.getBoundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
+       logic.getBoard.setNeighbourhood(MooreNeighbourHood, logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
     }
 
     if(importButton.isPressed && Gdx.input.justTouched) logic.getBoard.load()

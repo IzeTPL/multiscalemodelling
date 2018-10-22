@@ -27,8 +27,8 @@ abstract class AbstractScreen(var application: Application) extends Screen {
   timer = 0
   cellCamera = new OrthographicCamera
   uiCamera = new OrthographicCamera
-  cellViewport = new FitViewport(Gdx.graphics.getHeight, Gdx.graphics.getHeight, cellCamera)
-  uiViewport = new FitViewport(Gdx.graphics.getWidth - Gdx.graphics.getHeight, Gdx.graphics.getHeight, uiCamera)
+  cellViewport = new FitViewport(Gdx.graphics.getHeight.toFloat, Gdx.graphics.getHeight.toFloat, cellCamera)
+  uiViewport = new FitViewport(Gdx.graphics.getWidth.toFloat - Gdx.graphics.getHeight.toFloat, Gdx.graphics.getHeight.toFloat, uiCamera)
   cellCamera.position.set(cellViewport.getWorldWidth / 2, cellViewport.getWorldHeight / 2, 0)
   uiCamera.position.set(uiViewport.getWorldWidth / 2, uiViewport.getWorldHeight / 2, 0)
   stage = new Stage(uiViewport, this.application.getSpriteBatch)
@@ -58,8 +58,8 @@ abstract class AbstractScreen(var application: Application) extends Screen {
     cellViewport.apply()
     application.getSpriteBatch.setProjectionMatrix(cellCamera.combined)
     application.getSpriteBatch.begin()
-    val width = Gdx.graphics.getHeight.toFloat / (logic.getBoard.getGreaterDimesion.toFloat / logic.getBoard.getSize.x.toFloat)
-    val height = Gdx.graphics.getHeight.toFloat / (logic.getBoard.getGreaterDimesion.toFloat / logic.getBoard.getSize.y.toFloat)
+    val width = Gdx.graphics.getHeight.toFloat / (logic.getBoard.getGreaterDimesion.toFloat / logic.getBoard.size.x.toFloat)
+    val height = Gdx.graphics.getHeight.toFloat / (logic.getBoard.getGreaterDimesion.toFloat / logic.getBoard.size.y.toFloat)
     val texture = logic.getBoard.draw(showProgressbool, showBordersbool)
     application.getSpriteBatch.draw(texture, 0, Gdx.graphics.getHeight - height, width, height)
     application.getSpriteBatch.end()

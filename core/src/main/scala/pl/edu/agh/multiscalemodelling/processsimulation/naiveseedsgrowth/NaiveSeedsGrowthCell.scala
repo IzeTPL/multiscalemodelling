@@ -20,43 +20,16 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
   seedID = 0
   nextColor = new Color(Color.BLACK)
 
-  protected var nextSeedID: Integer = _
+  var nextSeedID: Integer = _
 
   override def checkNeighbors: Boolean = currentState match {
 
     case State.EMPTY => {
 
-      val neighborSeeds = new mutable.HashMap[Int, Int]
-
-      import scala.collection.JavaConversions._
-      for (cell: Cell <- neighbors) {
-        if (neighborSeeds.contains(cell.getSeedID)) {
-
-          neighborSeeds.update(cell.getSeedID, neighborSeeds.getOrElse(cell.getSeedID, 0) + 1)
-
-        } else {
-
-          neighborSeeds.put(cell.getSeedID, 1)
-
-        }
-      }
-
-      var max = -1
-
-      neighborSeeds.foreach { case (key, value) => {
-        if (value > max && (key != 0)) {
-          max = value
-          nextSeedID = key
-        }
-      }
-      }
-
-      if (max != -1) {
-
-        nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
-        nextState = State.ALIVE
-
-      }
+      checkRule1()
+      checkRule2()
+      checkRule3()
+      checkRule4()
 
       true
 
@@ -141,10 +114,153 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
   }
 
-  def setSeedID(seedID: Int): Unit = this.seedID = seedID
+  def checkRule1(): Unit = {
 
-  def getNextSeedID: Int = nextSeedID
+    val neighborSeeds = new mutable.HashMap[Int, Int]
 
-  def setNextSeedID(nextSeedID: Int): Unit = this.nextSeedID = nextSeedID
+    import scala.collection.JavaConversions._
+
+    for (cell: Cell <- neighbors.head) {
+      if (neighborSeeds.contains(cell.seedID)) {
+
+        neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
+
+      } else {
+
+        neighborSeeds.put(cell.seedID, 1)
+
+      }
+    }
+
+    var max = -1
+
+    neighborSeeds.foreach { case (key, value) => {
+      if (value > max && (key != 0)) {
+        max = value
+        nextSeedID = key
+      }
+    }
+    }
+
+    if (max != -1 && max >= 5) {
+
+      nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
+      nextState = State.ALIVE
+
+    }
+
+  }
+
+  def checkRule2(): Unit = {
+
+    val neighborSeeds = new mutable.HashMap[Int, Int]
+
+    import scala.collection.JavaConversions._
+
+    for (cell: Cell <- neighbors.tail.head) {
+      if (neighborSeeds.contains(cell.seedID)) {
+
+        neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
+
+      } else {
+
+        neighborSeeds.put(cell.seedID, 1)
+
+      }
+    }
+
+    var max = -1
+
+    neighborSeeds.foreach { case (key, value) => {
+      if (value > max && (key != 0)) {
+        max = value
+        nextSeedID = key
+      }
+    }
+    }
+
+    if (max != -1 && max >= 3) {
+
+      nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
+      nextState = State.ALIVE
+
+    }
+
+  }
+
+  def checkRule3(): Unit = {
+
+    val neighborSeeds = new mutable.HashMap[Int, Int]
+
+    import scala.collection.JavaConversions._
+
+    for (cell: Cell <- neighbors.tail.tail.head) {
+      if (neighborSeeds.contains(cell.seedID)) {
+
+        neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
+
+      } else {
+
+        neighborSeeds.put(cell.seedID, 1)
+
+      }
+    }
+
+    var max = -1
+
+    neighborSeeds.foreach { case (key, value) => {
+      if (value > max && (key != 0)) {
+        max = value
+        nextSeedID = key
+      }
+    }
+    }
+
+    if (max != -1 && max >= 3) {
+
+      nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
+      nextState = State.ALIVE
+
+    }
+
+  }
+
+  def checkRule4(): Unit = {
+
+    val neighborSeeds = new mutable.HashMap[Int, Int]
+    val random = new Random
+
+    import scala.collection.JavaConversions._
+
+    for (cell: Cell <- neighbors.tail.tail.head) {
+      if (neighborSeeds.contains(cell.seedID)) {
+
+        neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
+
+      } else {
+
+        neighborSeeds.put(cell.seedID, 1)
+
+      }
+    }
+
+    var max = -1
+
+    neighborSeeds.foreach { case (key, value) => {
+      if (value > max && (key != 0)) {
+        max = value
+        nextSeedID = key
+      }
+    }
+    }
+
+    if (max != -1 && random.nextInt(101) <= 10) {
+
+      nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
+      nextState = State.ALIVE
+
+    }
+
+  }
 
 }

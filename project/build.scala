@@ -32,7 +32,10 @@ object Settings {
       "-unchecked",
       "-deprecation",
       "-feature",
-      "-encoding", "UTF-8"
+      "-encoding", "UTF-8",
+      "-Xfuture",
+      "-Yno-adapted-args"
+
     ),
     cancelable := true,
     exportJars := true

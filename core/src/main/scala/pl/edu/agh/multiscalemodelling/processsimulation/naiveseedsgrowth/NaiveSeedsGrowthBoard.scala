@@ -30,27 +30,31 @@ class NaiveSeedsGrowthBoard(val x: Int, val y: Int) extends Board {
   override def clear(): Unit = {
     import scala.collection.JavaConversions._
     for (cell <- cells) {
-      cell.setNextState(State.EMPTY)
-      cell.setNextColor(Color.BLACK)
+      cell.nextState = State.EMPTY
+      cell.nextColor = Color.BLACK
       cell.update()
     }
   }
 
   override def randomize(cell: Cell, random: Random): Unit = {
     super.randomize(cell, random)
-    val test = cell.getSeedID == 0
-    if ((cell.getNextState eq State.ALIVE) && test) {
+    val test = cell.seedID == 0
+    if ((cell.nextState eq State.ALIVE) && test) {
       var color = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
       while ( {
         (color.r + color.g + color.a) < 0.5f
       }) color = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
-      cell.setNextColor(color)
-      cell.setNextState(State.ALIVE)
-      cell.asInstanceOf[NaiveSeedsGrowthCell].setNextSeedID({
-        NaiveSeedsGrowthBoard.newID += 1;
+      cell.nextColor = color
+      cell.nextState = State.ALIVE
+      cell.asInstanceOf[NaiveSeedsGrowthCell].nextSeedID = {
+        NaiveSeedsGrowthBoard.newID += 1
         NaiveSeedsGrowthBoard.newID
-      })
-      NaiveSeedsGrowthCell.getSeedList.put(NaiveSeedsGrowthBoard.newID, color)
+      }
+      NaiveSeedsGrowthCell.getSeedList.put(
+        NaiveSeedsGrowthBoard.newID,
+        color
+      )
+      ()
     }
   }
 
@@ -72,13 +76,13 @@ class NaiveSeedsGrowthBoard(val x: Int, val y: Int) extends Board {
         if (distanceX == distance + 1) distanceX = 0
         if (distanceX == distance && distanceY == distance) {
           val cell = cells.get(i * size.x + j)
-          cell.setNextState(State.ALIVE)
-          cell.asInstanceOf[NaiveSeedsGrowthCell].setSeedID({
-            NaiveSeedsGrowthBoard.newID += 1;
+          cell.nextState = State.ALIVE
+          cell.asInstanceOf[NaiveSeedsGrowthCell].nextSeedID = {
+            NaiveSeedsGrowthBoard.newID += 1
             NaiveSeedsGrowthBoard.newID
-          })
+          }
           cell.update()
-          if (cell.getCurrentState eq State.ALIVE) cell.setColor(new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1))
+          if (cell.currentState eq State.ALIVE) cell.color = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
         }
         distanceX += 1
         j += 1
@@ -98,14 +102,14 @@ class NaiveSeedsGrowthBoard(val x: Int, val y: Int) extends Board {
     import scala.collection.JavaConversions._
     for (cell <- cells) {
       var inside = false
-      var x = cell.getPosition.x - radius
+      var x = cell.position.x - radius
       while ( {
-        x < cell.getPosition.x + radius && !inside
+        x < cell.position.x + radius && !inside
       }) {
-        val yspan = radius * Math.sin(Math.acos((cell.getPosition.x - x) / radius)).round.toInt
-        var y = cell.getPosition.y - yspan
+        val yspan = radius * Math.sin(Math.acos((cell.position.x - x) / radius)).round.toInt
+        var y = cell.position.y - yspan
         while ( {
-          y < cell.getPosition.y + yspan && !inside
+          y < cell.position.y + yspan && !inside
         }) {
           val position = new Point(x, y)
 
@@ -113,7 +117,7 @@ class NaiveSeedsGrowthBoard(val x: Int, val y: Int) extends Board {
           if (position.y < 0) position.y_$eq(size.y - 1)
           if (position.x >= size.x) position.x_$eq(0)
           if (position.y >= size.y) position.y_$eq(0)
-          if (cells.get(position.x * size.x + position.y).getCurrentState eq State.ALIVE) inside = true
+          if (cells.get(position.x * size.x + position.y).currentState eq State.ALIVE) inside = true
           y += 1
           y - 1
         }

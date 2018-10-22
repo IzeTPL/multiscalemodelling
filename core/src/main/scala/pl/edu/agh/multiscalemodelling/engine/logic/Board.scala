@@ -21,12 +21,7 @@ abstract class Board() {
   neighborhoods = new util.ArrayList[Neighborhood]
   boundaryConditions.add(new FixedBoundaryCondition)
   boundaryConditions.add(new PeriodicBoudaryCondition)
-  neighborhoods.add(new MooreNeighbourHood)
-  neighborhoods.add(new VonNewmanNeighbourhood)
-  neighborhoods.add(new PentagonalRandomNeighbourhood)
-  neighborhoods.add(new HexagonalRandomNeighbourhood)
-  neighborhoods.add(new HexagonalLeftNeighbourhood)
-  neighborhoods.add(new HexagonalRightNeighbourhood)
+  //neighborhoods.add(new MooreNeighbourHood)
 
   def seed(): Unit = {
     val random = new Random
@@ -39,38 +34,38 @@ abstract class Board() {
 
   //TODO amount of nucleons and not repetitive places
   //WTF EVEN IS THIS SHIT and who did that???
-  def randomize(cell: Cell, random: Random): Unit = if (random.nextInt(((size.x * size.y) * 0.01f).toInt) == 1) cell.setNextState(State.ALIVE)
+  def randomize(cell: Cell, random: Random): Unit = if (random.nextInt(((size.x * size.y) * 0.01f).toInt) == 1) cell.nextState = State.ALIVE
 
   def clear(): Unit = {
 
     import scala.collection.JavaConversions._
     for (cell <- cells) {
-      cell.setNextState(State.EMPTY)
+      cell.nextState = State.EMPTY
       cell.update()
     }
 
   }
 
   def draw(progress: Boolean, borders: Boolean): Texture = {
-    val width = Gdx.graphics.getHeight / size.x
-    val height = Gdx.graphics.getHeight / size.y
+    //val width = Gdx.graphics.getHeight / size.x
+    //val height = Gdx.graphics.getHeight / size.y
     val board = new Pixmap(size.x, size.y, Pixmap.Format.RGBA8888)
     import scala.collection.JavaConversions._
     for (cell <- cells) {
       var sameID = 0
       import scala.collection.JavaConversions._
-      for (neighbor <- cell.getNeighbors) {
+      for (neighbor <- cell.neighbors.head) {
         if (Objects.equals(cell.color, neighbor.color)) {
           sameID += 1
           sameID - 1
         }
       }
-      if (progress) if (cell.getCurrentState eq State.EMPTY) board.setColor(Color.BLACK)
-      else if (cell.getCurrentState eq State.ALIVE) board.setColor(Color.WHITE)
+      if (progress) if (cell.currentState eq State.EMPTY) board.setColor(Color.BLACK)
+      else if (cell.currentState eq State.ALIVE) board.setColor(Color.WHITE)
       else board.setColor(Color.BLUE)
-      else if (sameID != cell.getNeighbors.size && sameID > 0 && borders) board.setColor(Color.BLACK)
-      else board.setColor(cell.getColor)
-      board.drawPixel(cell.getPosition.x, cell.getPosition.y)
+      else if (sameID != cell.neighbors.size && sameID > 0 && borders) board.setColor(Color.BLACK)
+      else board.setColor(cell.color)
+      board.drawPixel(cell.position.x, cell.position.y)
     }
     val texture = new Texture(board)
     //board.dispose()
@@ -149,7 +144,11 @@ abstract class Board() {
   def setNeighbourhood(neighbourhood: Neighborhood, boundaryCondition: BoundaryCondition): Unit = {
     import scala.collection.JavaConversions._
     for (cell <- cells) {
-      cell.neighbors_(neighbourhood.findNeighbors(cells, cell, boundaryCondition, size))
+      cell.neighbors = List(
+        MooreNeighbourHood.findNeighbors(cells, cell, boundaryCondition, size),
+        NearestMooreNeighbourhood.findNeighbors(cells, cell, boundaryCondition, size),
+        FurtherMooreNeighbourhood.findNeighbors(cells, cell, boundaryCondition, size)
+      )
     }
   }
 
@@ -181,15 +180,14 @@ abstract class Board() {
 
         var sameID = 0
         import scala.collection.JavaConversions._
-        for (neighbor <- cells.get(xpos * size.x + ypos).getNeighbors) {
+        for (neighbor <- cells.get(xpos * size.x + ypos).neighbors.head) {
           if (Objects.equals(cells.get(xpos * size.x + ypos).color, neighbor.color)) {
             sameID += 1
             sameID - 1
           }
         }
 
-        if (sameID != cells.get(xpos * size.x + ypos).getNeighbors.size && sameID > 0 || !started) {
-
+        if (sameID != cells.get(xpos * size.x + ypos).neighbors.size && sameID > 0 || !started) {
 
           var x = xpos - inclusionSize + 1
 
@@ -240,21 +238,20 @@ abstract class Board() {
 
         var sameID = 0
         import scala.collection.JavaConversions._
-        for (neighbor <- cells.get(xpos * size.x + ypos).getNeighbors) {
+        for (neighbor <- cells.get(xpos * size.x + ypos).neighbors.head) {
           if (Objects.equals(cells.get(xpos * size.x + ypos).color, neighbor.color)) {
             sameID += 1
             sameID - 1
           }
         }
 
-        if (sameID != cells.get(xpos * size.x + ypos).getNeighbors.size && sameID > 0 || !started) {
+        if (sameID != cells.get(xpos * size.x + ypos).neighbors.size && sameID > 0 || !started) {
 
 
           while (x < xpos + inclusionSize) {
 
-            var yspan = (inclusionSize * Math.sin(Math.acos((xpos - x).toDouble / inclusionSize.toDouble))).floor.toInt
+            val yspan = (inclusionSize * Math.sin(Math.acos((xpos - x).toDouble / inclusionSize.toDouble))).floor.toInt
 
-            println(yspan)
             var y = ypos - yspan + 1
 
             while (y < ypos + yspan) {
@@ -287,13 +284,4 @@ abstract class Board() {
 
     }
 
-  def getSize: Point = size
-
-  def getCells: util.List[Cell] = cells
-
-  def setCells(cells: util.List[Cell]): Unit = this.cells = cells
-
-  def getBoundaryConditions: util.List[BoundaryCondition] = boundaryConditions
-
-  def getNeighborhoods: util.List[Neighborhood] = neighborhoods
 }
