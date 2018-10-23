@@ -20,6 +20,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var timeField: TextField = _
   var inclusionAmountField: TextField = _
   var inclusionSizeField: TextField = _
+  var rule4ProbabilityField: TextField = _
   var widthLabel: Label = _
   var heightLabel: Label = _
   var seedLabel: Label = _
@@ -28,6 +29,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var continousSeeding: CheckBox = _
   var showProgress: CheckBox = _
   var showBorders: CheckBox = _
+  var grainShapeControl: CheckBox = _
   var seedButton: Button = _
   var toggleButton: Button = _
   var clearButton: Button = _
@@ -58,6 +60,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   timeField = new TextField("1", textFieldStyle)
   inclusionAmountField = new TextField("1", textFieldStyle)
   inclusionSizeField = new TextField("2", textFieldStyle)
+  rule4ProbabilityField = new TextField("10", textFieldStyle)
   seedField.setVisible(false)
   val textButtonStyle = new TextButton.TextButtonStyle
   textButtonStyle.font = new BitmapFont
@@ -76,6 +79,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   continousSeeding = new CheckBox("Continous nucleons", checkBoxStyle)
   showProgress = new CheckBox("Show progress", checkBoxStyle)
   showBorders = new CheckBox("Show borders", checkBoxStyle)
+  grainShapeControl = new CheckBox("Grain shape control", checkBoxStyle)
   seedButton = new TextButton("Place nucleons", textButtonStyle)
   toggleButton = new TextButton("Play", textButtonStyle)
   clearButton = new TextButton("Clear", textButtonStyle)

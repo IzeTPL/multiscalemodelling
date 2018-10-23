@@ -9,7 +9,7 @@ import scala.util.Random
 object NaiveSeedsGrowthCell {
 
   var seedList: mutable.HashMap[Int, Color] = _
-
+  var grainShapeControl: Boolean = false
   def getSeedList: mutable.HashMap[Int, Color] = seedList
 
 }
@@ -26,10 +26,18 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
     case State.EMPTY => {
 
-      checkRule1()
-      checkRule2()
-      checkRule3()
-      checkRule4()
+      if(NaiveSeedsGrowthCell.grainShapeControl) {
+
+        if (checkRule1())
+          if (checkRule2())
+            if (checkRule3())
+              checkRule4()
+
+      } else {
+
+        checkDefaultRule()
+
+      }
 
       true
 
@@ -114,7 +122,45 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
   }
 
-  def checkRule1(): Unit = {
+  def checkDefaultRule(): Boolean = {
+
+    val neighborSeeds = new mutable.HashMap[Int, Int]
+
+    import scala.collection.JavaConversions._
+
+    for (cell: Cell <- neighbors.head) {
+      if (neighborSeeds.contains(cell.seedID)) {
+
+        neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
+
+      } else {
+
+        neighborSeeds.put(cell.seedID, 1)
+
+      }
+    }
+
+    var max = -1
+
+    neighborSeeds.foreach { case (key, value) => {
+      if (value > max && (key != 0)) {
+        max = value
+        nextSeedID = key
+      }
+    }
+    }
+
+    if (max != -1) {
+
+      nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
+      nextState = State.ALIVE
+      false
+
+    } else true
+
+  }
+
+  def checkRule1(): Boolean = {
 
     val neighborSeeds = new mutable.HashMap[Int, Int]
 
@@ -146,12 +192,13 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
       nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
       nextState = State.ALIVE
+      false
 
-    }
+    } else true
 
   }
 
-  def checkRule2(): Unit = {
+  def checkRule2(): Boolean = {
 
     val neighborSeeds = new mutable.HashMap[Int, Int]
 
@@ -183,12 +230,13 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
       nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
       nextState = State.ALIVE
+      false
 
-    }
+    } else true
 
   }
 
-  def checkRule3(): Unit = {
+  def checkRule3(): Boolean = {
 
     val neighborSeeds = new mutable.HashMap[Int, Int]
 
@@ -220,12 +268,13 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
       nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
       nextState = State.ALIVE
+      false
 
-    }
+    } else true
 
   }
 
-  def checkRule4(): Unit = {
+  def checkRule4(): Boolean = {
 
     val neighborSeeds = new mutable.HashMap[Int, Int]
     val random = new Random
@@ -258,8 +307,9 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
       nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
       nextState = State.ALIVE
+      false
 
-    }
+    } else true
 
   }
 
