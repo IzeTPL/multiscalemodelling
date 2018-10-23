@@ -112,7 +112,7 @@ abstract class Board() {
 
         }
 
-    val texture = new Texture(Gdx.files.absolute("aaa.png")).getTextureData
+    val texture = new Texture(Gdx.files.absolute(path)).getTextureData
     texture.prepare()
     val pixels = texture.consumePixmap
 

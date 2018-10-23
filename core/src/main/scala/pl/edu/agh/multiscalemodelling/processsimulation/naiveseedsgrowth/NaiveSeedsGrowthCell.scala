@@ -10,6 +10,7 @@ object NaiveSeedsGrowthCell {
 
   var seedList: mutable.HashMap[Int, Color] = _
   var grainShapeControl: Boolean = false
+  var probability: Int = 10
   def getSeedList: mutable.HashMap[Int, Color] = seedList
 
 }
@@ -303,7 +304,7 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
     }
     }
 
-    if (max != -1 && random.nextInt(101) <= 10) {
+    if (max != -1 && random.nextInt(101) <= NaiveSeedsGrowthCell.probability) {
 
       nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
       nextState = State.ALIVE

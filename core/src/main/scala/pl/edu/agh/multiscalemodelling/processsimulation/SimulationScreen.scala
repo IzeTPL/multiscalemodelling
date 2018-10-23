@@ -10,7 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.{ChangeListener, ClickListener, Tex
 import pl.edu.agh.multiscalemodelling.engine.Application
 import pl.edu.agh.multiscalemodelling.engine.logic.neighbourhood.MooreNeighbourHood
 import pl.edu.agh.multiscalemodelling.engine.render.{AbstractScreen, DrawableColor}
-import pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth.{NaiveSeedsGrowthBoard, NaiveSeedsGrowthLogic}
+import pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth.{NaiveSeedsGrowthBoard, NaiveSeedsGrowthCell, NaiveSeedsGrowthLogic}
 
 class SimulationScreen(application: Application) extends AbstractScreen(application) {
 
@@ -54,8 +54,8 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   textFieldStyle.font = new BitmapFont
   textFieldStyle.fontColor = Color.BLACK
   textFieldStyle.background = DrawableColor.getColor(Color.WHITE)
-  widthField = new TextField("700", textFieldStyle)
-  heightField = new TextField("700", textFieldStyle)
+  widthField = new TextField("300", textFieldStyle)
+  heightField = new TextField("300", textFieldStyle)
   seedField = new TextField("5", textFieldStyle)
   timeField = new TextField("1", textFieldStyle)
   inclusionAmountField = new TextField("1", textFieldStyle)
@@ -165,6 +165,10 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     }
   })
 
+  rule4ProbabilityField.addListener(new ChangeListener {
+    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = if(!rule4ProbabilityField.getText.isEmpty) NaiveSeedsGrowthCell.probability = rule4ProbabilityField.getText.toInt
+  })
+
   table.add(widthLabel).expandX
   table.add(heightLabel).expandX
   table.row
@@ -205,6 +209,9 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(inclusionSizeField).expandX.fill
   table.row
   table.add(addInclusionsButton).expandX.fill
+  table.row
+  table.add(grainShapeControl).expandX.fill
+  table.add(rule4ProbabilityField).expandX.fill
 
   naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(300, 300)
   logic = naiveSeedsGrowthLogic
@@ -219,6 +226,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     super.render(delta)
     showProgressbool = showProgress.isChecked
     showBordersbool = showBorders.isChecked
+    NaiveSeedsGrowthCell.grainShapeControl = grainShapeControl.isChecked
     update(delta)
     if (!logic.isPaused) {
       logic.started=true
