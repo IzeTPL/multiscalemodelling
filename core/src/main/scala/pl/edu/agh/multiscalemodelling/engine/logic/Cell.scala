@@ -18,7 +18,7 @@ class Cell(x: Int, y: Int) extends ICell {
   position = new Point(x, y)
   color = new Color(Color.WHITE)
 
-  override def checkNeighbors = false
+  override def checkNeighbors: Unit = {}
   override def update(): Unit = currentState = nextState
 
 

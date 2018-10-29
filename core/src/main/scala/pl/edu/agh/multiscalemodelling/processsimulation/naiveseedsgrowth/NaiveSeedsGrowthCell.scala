@@ -1,5 +1,7 @@
 package pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth
 
+import java._
+
 import com.badlogic.gdx.graphics.Color
 import pl.edu.agh.multiscalemodelling.engine.logic.{Cell, State}
 
@@ -8,7 +10,7 @@ import scala.util.Random
 
 object NaiveSeedsGrowthCell {
 
-  var seedList: mutable.HashMap[Int, Color] = _
+  var seedList: mutable.HashMap[Int, Color] = new mutable.HashMap[Int, Color]()
   var grainShapeControl: Boolean = false
   var probability: Int = 10
   def getSeedList: mutable.HashMap[Int, Color] = seedList
@@ -17,13 +19,12 @@ object NaiveSeedsGrowthCell {
 
 class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
-  NaiveSeedsGrowthCell.seedList = new mutable.HashMap[Int, Color]()
   seedID = 0
   nextColor = new Color(Color.BLACK)
 
-  var nextSeedID: Integer = _
+  var nextSeedID: Integer = 0
 
-  override def checkNeighbors: Boolean = currentState match {
+  override def checkNeighbors: Unit = currentState match {
 
     case State.EMPTY => {
 
@@ -40,42 +41,45 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
       }
 
-      true
-
     }
 
-    case _ => false
+    case _ =>
 
   }
 
-  def swap(): Unit = currentState match {
+  def swap(): Unit = {
 
-    case State.ALIVE => {
+    currentState match {
 
-      nextState = State.EMPTY
-      nextColor = Color.BLACK
-      nextSeedID = 0
+      case State.ALIVE => {
 
-    }
+        nextState = State.EMPTY
+        nextColor = Color.BLACK
+        nextSeedID = 0
 
-    case _ => {
-
-      val random = new Random
-      nextState = State.ALIVE
-      nextColor = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
-
-      nextSeedID = {
-        NaiveSeedsGrowthBoard.newID += 1
-        NaiveSeedsGrowthBoard.newID
       }
 
-      NaiveSeedsGrowthCell.getSeedList.put(NaiveSeedsGrowthBoard.newID, nextColor)
+      case _ => {
+
+        val random = new Random
+        nextState = State.ALIVE
+        nextColor = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
+
+        nextSeedID = {
+          NaiveSeedsGrowthBoard.newID += 1
+          NaiveSeedsGrowthBoard.newID
+        }
+
+        NaiveSeedsGrowthCell.getSeedList.put(NaiveSeedsGrowthBoard.newID, nextColor)
+
+      }
 
     }
 
-      update()
+    update()
 
   }
+
 
   override def update(): Unit = {
 
@@ -116,42 +120,19 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
       }
 
-      case _ =>
+      case _ => Left("Unhandled state change")
 
     }
+
     super.update()
 
   }
 
   def checkDefaultRule(): Boolean = {
 
-    val neighborSeeds = new mutable.HashMap[Int, Int]
-
     import scala.collection.JavaConversions._
 
-    for (cell: Cell <- neighbors.head) {
-      if (neighborSeeds.contains(cell.seedID)) {
-
-        neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
-
-      } else {
-
-        neighborSeeds.put(cell.seedID, 1)
-
-      }
-    }
-
-    var max = -1
-
-    neighborSeeds.foreach { case (key, value) => {
-      if (value > max && (key != 0)) {
-        max = value
-        nextSeedID = key
-      }
-    }
-    }
-
-    if (max != -1) {
+    if (findMax(neighbors.head) != -1) {
 
       nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
       nextState = State.ALIVE
@@ -163,31 +144,9 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
   def checkRule1(): Boolean = {
 
-    val neighborSeeds = new mutable.HashMap[Int, Int]
-
     import scala.collection.JavaConversions._
 
-    for (cell: Cell <- neighbors.head) {
-      if (neighborSeeds.contains(cell.seedID)) {
-
-        neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
-
-      } else {
-
-        neighborSeeds.put(cell.seedID, 1)
-
-      }
-    }
-
-    var max = -1
-
-    neighborSeeds.foreach { case (key, value) => {
-      if (value > max && (key != 0)) {
-        max = value
-        nextSeedID = key
-      }
-    }
-    }
+    val max = findMax(neighbors.head)
 
     if (max != -1 && max >= 5) {
 
@@ -201,31 +160,9 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
   def checkRule2(): Boolean = {
 
-    val neighborSeeds = new mutable.HashMap[Int, Int]
-
     import scala.collection.JavaConversions._
 
-    for (cell: Cell <- neighbors.tail.head) {
-      if (neighborSeeds.contains(cell.seedID)) {
-
-        neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
-
-      } else {
-
-        neighborSeeds.put(cell.seedID, 1)
-
-      }
-    }
-
-    var max = -1
-
-    neighborSeeds.foreach { case (key, value) => {
-      if (value > max && (key != 0)) {
-        max = value
-        nextSeedID = key
-      }
-    }
-    }
+    val max = findMax(neighbors.tail.head)
 
     if (max != -1 && max >= 3) {
 
@@ -239,31 +176,9 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
   def checkRule3(): Boolean = {
 
-    val neighborSeeds = new mutable.HashMap[Int, Int]
-
     import scala.collection.JavaConversions._
 
-    for (cell: Cell <- neighbors.tail.tail.head) {
-      if (neighborSeeds.contains(cell.seedID)) {
-
-        neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
-
-      } else {
-
-        neighborSeeds.put(cell.seedID, 1)
-
-      }
-    }
-
-    var max = -1
-
-    neighborSeeds.foreach { case (key, value) => {
-      if (value > max && (key != 0)) {
-        max = value
-        nextSeedID = key
-      }
-    }
-    }
+    val max = findMax(neighbors.tail.tail.head)
 
     if (max != -1 && max >= 3) {
 
@@ -277,12 +192,29 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
   def checkRule4(): Boolean = {
 
-    val neighborSeeds = new mutable.HashMap[Int, Int]
+    import scala.collection.JavaConversions._
+
+    val max = findMax(neighbors.head)
+
     val random = new Random
+
+    if (max != -1 && random.nextInt(101) <= NaiveSeedsGrowthCell.probability) {
+
+      nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
+      nextState = State.ALIVE
+      false
+
+    } else true
+
+  }
+
+  def findMax(neighbors: util.List[Cell]): Int = {
+
+    val neighborSeeds = new mutable.HashMap[Int, Int]
 
     import scala.collection.JavaConversions._
 
-    for (cell: Cell <- neighbors.tail.tail.head) {
+    for (cell: Cell <- neighbors) {
       if (neighborSeeds.contains(cell.seedID)) {
 
         neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
@@ -304,13 +236,7 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
     }
     }
 
-    if (max != -1 && random.nextInt(101) <= NaiveSeedsGrowthCell.probability) {
-
-      nextColor = NaiveSeedsGrowthCell.getSeedList.getOrElse(nextSeedID, Color.MAGENTA)
-      nextState = State.ALIVE
-      false
-
-    } else true
+    max
 
   }
 

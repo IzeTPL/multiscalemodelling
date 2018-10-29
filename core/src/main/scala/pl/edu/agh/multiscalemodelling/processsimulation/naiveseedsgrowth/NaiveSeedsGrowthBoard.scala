@@ -10,7 +10,7 @@ object NaiveSeedsGrowthBoard {
 }
 
 class NaiveSeedsGrowthBoard(val x: Int, val y: Int) extends Board {
-  size_$eq(new Point(x, y))
+  size = new Point(x, y)
   var i = 0
   while ( {
     i < size.x
@@ -60,7 +60,7 @@ class NaiveSeedsGrowthBoard(val x: Int, val y: Int) extends Board {
 
   def swap(x: Int, y: Int): Unit = cells.get(x * size.x + y).asInstanceOf[NaiveSeedsGrowthCell].swap()
 
-  def seed(distance: Int): Unit = {
+/*  def seed(distance: Int): Unit = {
     val random = new Random
     var distanceY = 0
     var i = 0
@@ -127,6 +127,6 @@ class NaiveSeedsGrowthBoard(val x: Int, val y: Int) extends Board {
       if (!inside) randomize(cell, random)
     }
 
-  }
+  }*/
 
 }

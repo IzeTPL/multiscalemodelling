@@ -46,8 +46,8 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var naiveSeedsGrowthLogic: NaiveSeedsGrowthLogic = _
   widthLabel = new Label("width", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   heightLabel = new Label("height", new Label.LabelStyle(new BitmapFont, Color.WHITE))
-  seedLabel = new Label("", new Label.LabelStyle(new BitmapFont, Color.WHITE))
-  seedLabel.setVisible(false)
+  seedLabel = new Label("Amount", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+  seedLabel.setVisible(true)
   inclusionAmountLabel = new Label("Inclusions amount", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   inclusionSizeLabel = new Label("Inclusion size", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   val textFieldStyle = new TextField.TextFieldStyle
@@ -56,12 +56,12 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   textFieldStyle.background = DrawableColor.getColor(Color.WHITE)
   widthField = new TextField("300", textFieldStyle)
   heightField = new TextField("300", textFieldStyle)
-  seedField = new TextField("5", textFieldStyle)
+  seedField = new TextField("50", textFieldStyle)
   timeField = new TextField("1", textFieldStyle)
   inclusionAmountField = new TextField("1", textFieldStyle)
   inclusionSizeField = new TextField("2", textFieldStyle)
   rule4ProbabilityField = new TextField("10", textFieldStyle)
-  seedField.setVisible(false)
+  seedField.setVisible(true)
   val textButtonStyle = new TextButton.TextButtonStyle
   textButtonStyle.font = new BitmapFont
   textButtonStyle.fontColor = Color.WHITE
@@ -128,13 +128,14 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = logic.getBoard.setNeighbourhood(logic.getBoard.neighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
   })
   seedTypeSelection = new SelectBox[String](selectBoxStyle)
-  seedTypeSelection.setItems("Random seed", "Regular Seed", "Random with radius")
+  seedTypeSelection.setItems("Amount", "Regular nucleons", "Random with radius")
   seedTypeSelection.setSelectedIndex(0)
   seedTypeSelection.addListener(new ChangeListener() {
     override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = seedTypeSelection.getSelectedIndex match {
       case 0 =>
-        seedField.setVisible(false)
-        seedLabel.setVisible(false)
+        seedField.setVisible(true)
+        seedLabel.setVisible(true)
+        seedLabel.setText("Amount")
       case 1 =>
         seedField.setVisible(true)
         seedLabel.setVisible(true)
@@ -229,11 +230,11 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     NaiveSeedsGrowthCell.grainShapeControl = grainShapeControl.isChecked
     update(delta)
     if (!logic.isPaused) {
-      logic.started=true
+      logic.started = true
       logic.iterate()
       if (timer > timeField.getText.toFloat && continousSeeding.isChecked) {
         timer = 0
-        logic.getBoard.seed()
+        logic.getBoard.seed(50)
       }
     }
     handleInput()
@@ -245,18 +246,19 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
 
   def handleInput(): Unit = {
     if (Gdx.input.justTouched) {
-      var vector2 = new Vector2(Gdx.input.getX.toFloat, Gdx.graphics.getHeight.toFloat - Gdx.input.getY)
+      var vector2 = new Vector2(Gdx.input.getX.toFloat, Gdx.graphics.getHeight.toFloat - Gdx.input.getY.toFloat)
       vector2 = cellViewport.unproject(vector2)
-      if (vector2.x > 0 && vector2.y > 0) logic.click((vector2.x / (Gdx.graphics.getHeight / logic.getBoard.size.x)).toInt, (vector2.y / (Gdx.graphics.getHeight / logic.getBoard.size.y)).toInt)
+      if (vector2.x > 0 && vector2.y > 0) //logic.click((vector2.x / (Gdx.graphics.getHeight.toFloat / logic.getBoard.size.x.toFloat)).toInt, (vector2.y / (Gdx.graphics.getHeight.toFloat / logic.getBoard.size.y.toFloat)).toInt)
+      logic.board.selectGrain((vector2.x / (Gdx.graphics.getHeight.toFloat / logic.getBoard.size.x.toFloat)).toInt, (vector2.y / (Gdx.graphics.getHeight.toFloat / logic.getBoard.size.y.toFloat)).toInt)
     }
     if (Gdx.input.isKeyJustPressed(Input.Keys.P)) logic.pause()
     if (seedButton.isPressed && Gdx.input.justTouched) seedTypeSelection.getSelectedIndex match {
       case 0 =>
-        logic.getBoard.seed()
+        logic.getBoard.seed(seedField.getText.toInt)
       case 1 =>
-        logic.getBoard.asInstanceOf[NaiveSeedsGrowthBoard].seed(seedField.getText.toInt)
+        //logic.getBoard.asInstanceOf[NaiveSeedsGrowthBoard].seed(seedField.getText.toInt)
       case 2 =>
-        logic.getBoard.asInstanceOf[NaiveSeedsGrowthBoard].radiusSeed(seedField.getText.toInt)
+        //logic.getBoard.asInstanceOf[NaiveSeedsGrowthBoard].radiusSeed(seedField.getText.toInt)
     }
     if (toggleButton.isPressed && Gdx.input.justTouched) logic.pause()
     if (clearButton.isPressed && Gdx.input.justTouched) logic.getBoard.clear()
@@ -266,8 +268,8 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
        logic.getBoard.setNeighbourhood(MooreNeighbourHood, logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
     }
 
-    if(importButton.isPressed && Gdx.input.justTouched) logic.getBoard.load()
-    if(exportButton.isPressed && Gdx.input.justTouched) logic.getBoard.save()
+    if(importButton.isPressed && Gdx.input.justTouched) logic.getBoard.load(fileTypeSelection.getSelectedIndex)
+    if(exportButton.isPressed && Gdx.input.justTouched) logic.getBoard.save(fileTypeSelection.getSelectedIndex)
     if(addInclusionsButton.isPressed && Gdx.input.justTouched) logic.getBoard.addInclusions(inclusionType.getSelectedIndex, inclusionAmountField.getText.toInt, inclusionSizeField.getText.toInt, logic.started)
 
   }

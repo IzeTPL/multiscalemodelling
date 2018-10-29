@@ -1,7 +1,7 @@
 package pl.edu.agh.multiscalemodelling.model
 
 trait ICell {
-  def checkNeighbors: Boolean
+  def checkNeighbors: Unit
 
   def update(): Unit
 }

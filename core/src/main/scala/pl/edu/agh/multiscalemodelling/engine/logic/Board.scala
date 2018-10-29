@@ -8,6 +8,10 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.{Color, Pixmap, PixmapIO, Texture}
 import pl.edu.agh.multiscalemodelling.engine.logic.boudarycondition.{BoundaryCondition, FixedBoundaryCondition, PeriodicBoudaryCondition}
 import pl.edu.agh.multiscalemodelling.engine.logic.neighbourhood._
+import pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth.NaiveSeedsGrowthCell
+
+import scala.collection.mutable
+import scala.io.Source
 
 abstract class Board() {
 
@@ -15,26 +19,29 @@ abstract class Board() {
   var cells: util.List[Cell] = _
   var boundaryConditions: util.List[BoundaryCondition] = _
   var neighborhoods: util.List[Neighborhood] = _
+  var selectedGrains: mutable.HashSet[Int] = new mutable.HashSet[Int]()
 
   cells = new util.ArrayList[Cell]
   boundaryConditions = new util.ArrayList[BoundaryCondition]
   neighborhoods = new util.ArrayList[Neighborhood]
   boundaryConditions.add(new FixedBoundaryCondition)
   boundaryConditions.add(new PeriodicBoudaryCondition)
-  //neighborhoods.add(new MooreNeighbourHood)
 
-  def seed(): Unit = {
+  def seed(amount: Int): Unit = {
     val random = new Random
-    import scala.collection.JavaConversions._
-    for (cell <- cells) {
+    var i = 0
+    while (i < amount) {
+      val cell = cells.get(random.nextInt(size.x * size.y))
       randomize(cell, random)
+      if(cell.nextState == State.ALIVE ){
+        i+=1
+        i - 1
+      }
       cell.update()
     }
   }
 
-  //TODO amount of nucleons and not repetitive places
-  //WTF EVEN IS THIS SHIT and who did that???
-  def randomize(cell: Cell, random: Random): Unit = if (random.nextInt(((size.x * size.y) * 0.01f).toInt) == 1) cell.nextState = State.ALIVE
+  def randomize(cell: Cell, random: Random): Unit = if (cell.currentState == State.EMPTY) cell.nextState = State.ALIVE
 
   def clear(): Unit = {
 
@@ -63,7 +70,7 @@ abstract class Board() {
       if (progress) if (cell.currentState eq State.EMPTY) board.setColor(Color.BLACK)
       else if (cell.currentState eq State.ALIVE) board.setColor(Color.WHITE)
       else board.setColor(Color.BLUE)
-      else if (sameID != cell.neighbors.size && sameID > 0 && borders) board.setColor(Color.BLACK)
+      else if (sameID != cell.neighbors.head.size && sameID > 0 && borders) board.setColor(Color.BLACK)
       else board.setColor(cell.color)
       board.drawPixel(cell.position.x, cell.position.y)
     }
@@ -72,29 +79,47 @@ abstract class Board() {
     texture
   }
 
-  def save(): Unit = {
-
-    val texture = draw(progress = false, borders = false)
+  def save(outputType: Int): Unit = {
 
     import javax.swing.JFileChooser
     import javax.swing.JFrame
 
-        val chooser = new JFileChooser
-        val f = new JFrame
-        f.setVisible(true)
-        f.toFront()
-        f.setVisible(false)
-        val res = chooser.showSaveDialog(f)
-        f.dispose()
+    val chooser = new JFileChooser
+    val f = new JFrame
+    f.setVisible(true)
+    f.toFront()
+    f.setVisible(false)
+    val res = chooser.showSaveDialog(f)
+    f.dispose()
+
+    outputType match {
+
+      case 0 => {
+        if (res == JFileChooser.APPROVE_OPTION) {
+          val pw = new java.io.PrintWriter(chooser.getSelectedFile.getName + ".txt")
+          import scala.collection.JavaConversions._
+          pw.println(List(size.x, size.y).mkString(","))
+          for (cell <- cells) {
+            pw.println(List(cell.position.x, cell.position.y, cell.seedID).mkString(","))
+          }
+          pw.close()
+        }
+      }
+
+      case 1 => {
+        val texture = draw(progress = false, borders = false)
         if (res == JFileChooser.APPROVE_OPTION) {
           PixmapIO.writePNG(new FileHandle(chooser.getSelectedFile.getName + ".png"), texture.getTextureData.consumePixmap())
         }
+      }
+
+    }
 
   }
 
-  def load(): Unit = {
+  def load(outputType: Int): Unit = {
 
-    var path: String = "aaa.png"
+    var path = "aaa"
 
     import javax.swing.JFileChooser
     import javax.swing.JFrame
@@ -112,30 +137,73 @@ abstract class Board() {
 
         }
 
-    val texture = new Texture(Gdx.files.absolute(path)).getTextureData
-    texture.prepare()
-    val pixels = texture.consumePixmap
+    outputType match {
 
-    var i = 0
+      case 0 => {
+        if (res == JFileChooser.APPROVE_OPTION) {
+          val myVarsFromFile = Source.fromFile("myVars").getLines.toList
 
-    while(i < pixels.getWidth) {
+          if (myVarsFromFile.nonEmpty) {
+            cells = new util.ArrayList[Cell]()
+            NaiveSeedsGrowthCell.seedList = new mutable.HashMap[Int, Color]()
+            val boardData = myVarsFromFile.head.split(",")
+            size.x = boardData(0).toInt
+            size.y = boardData(1).toInt
+            myVarsFromFile.tail.foreach( line => {
+              val cellData = line.split(",")
+              val cell = new NaiveSeedsGrowthCell(cellData(0).toInt, cellData(1).toInt)
+              cell.seedID = cellData(2).toInt
+              cell.nextState = State.ALIVE
+              cell.color = NaiveSeedsGrowthCell.seedList.getOrElse(cell.seedID, {
+                val color: Color = new Color(new Random().nextInt(Int.MaxValue))
+                color.a = 1
+                NaiveSeedsGrowthCell.seedList.put(cell.seedID, color)
+                color
+              })
+              cell.nextColor = cell.color
+              cell.update()
+              cells.add(cell)
+            })
 
-      var j = 0
+            import scala.collection.JavaConversions._
+            for(cell <- cells) {
 
-      while(j < pixels.getHeight) {
+              cell.neighbors = List(MooreNeighbourHood.findNeighbors(cells, cell, new PeriodicBoudaryCondition, size))
 
+            }
 
-        cells.get(i*size.x+j).nextColor = new Color(pixels.getPixel(i, j))
-        cells.get(i*size.x+j).nextState = State.ALIVE
-        cells.get(i*size.x+j).update()
-
-        j+=1
-        j-1
-
+          }
+        }
       }
 
-      i+=1
-      i-1
+      case 1 => {
+        val texture = new Texture(Gdx.files.absolute(path)).getTextureData
+        texture.prepare()
+        val pixels = texture.consumePixmap
+
+        var i = 0
+
+        while(i < pixels.getWidth) {
+
+          var j = 0
+
+          while(j < pixels.getHeight) {
+
+
+            cells.get(i*size.x+j).nextColor = new Color(pixels.getPixel(i, j))
+            cells.get(i*size.x+j).nextState = State.ALIVE
+            cells.get(i*size.x+j).update()
+
+            j+=1
+            j-1
+
+          }
+
+          i+=1
+          i-1
+
+        }
+      }
 
     }
 
@@ -168,6 +236,8 @@ abstract class Board() {
 
   }
 
+
+
     def squareInclusions(inclusionAmount: Int, inclusionSize: Int, started: Boolean): Unit = {
 
       val random = new Random
@@ -187,7 +257,7 @@ abstract class Board() {
           }
         }
 
-        if (sameID != cells.get(xpos * size.x + ypos).neighbors.size && sameID > 0 || !started) {
+        if (sameID != cells.get(xpos * size.x + ypos).neighbors.head.size && sameID > 0 || !started) {
 
           var x = xpos - inclusionSize + 1
 
@@ -199,10 +269,10 @@ abstract class Board() {
 
               val position = new Point(x, y)
 
-              if (position.x < 0) position.x_$eq(size.x - 1)
-              if (position.y < 0) position.y_$eq(size.y - 1)
-              if (position.x >= size.x) position.x_$eq(0)
-              if (position.y >= size.y) position.y_$eq(0)
+              if (position.x < 0) position.x = size.x - 1
+              if (position.y < 0) position.y = size.y - 1
+              if (position.x >= size.x) position.x = 0
+              if (position.y >= size.y) position.y = 0
 
               cells.get(position.x * size.x + position.y).nextState = State.INCLUSION
               cells.get(position.x * size.x + position.y).update()
@@ -239,13 +309,13 @@ abstract class Board() {
         var sameID = 0
         import scala.collection.JavaConversions._
         for (neighbor <- cells.get(xpos * size.x + ypos).neighbors.head) {
-          if (Objects.equals(cells.get(xpos * size.x + ypos).color, neighbor.color)) {
+          if (cells.get(xpos * size.x + ypos).color.toIntBits == neighbor.color.toIntBits) {
             sameID += 1
             sameID - 1
           }
         }
 
-        if (sameID != cells.get(xpos * size.x + ypos).neighbors.size && sameID > 0 || !started) {
+        if (sameID != cells.get(xpos * size.x + ypos).neighbors.head.size && sameID > 0 || !started) {
 
 
           while (x < xpos + inclusionSize) {
@@ -258,10 +328,10 @@ abstract class Board() {
 
               val position = new Point(x, y)
 
-              if (position.x < 0) position.x_$eq(size.x - 1)
-              if (position.y < 0) position.y_$eq(size.y - 1)
-              if (position.x >= size.x) position.x_$eq(0)
-              if (position.y >= size.y) position.y_$eq(0)
+              if (position.x < 0) position.x = size.x - 1
+              if (position.y < 0) position.y = size.y - 1
+              if (position.x >= size.x) position.x = 0
+              if (position.y >= size.y) position.y = 0
 
               cells.get(position.x * size.x + position.y).nextState = State.INCLUSION
               cells.get(position.x * size.x + position.y).update()
@@ -283,5 +353,12 @@ abstract class Board() {
 
 
     }
+
+  def selectGrain(x: Int, y: Int): Unit = {
+
+    val cell: Cell = cells.get(x * size.x + y)
+    if (selectedGrains contains cell.seedID) selectedGrains -= cell.seedID else selectedGrains += cell.seedID
+
+  }
 
 }
