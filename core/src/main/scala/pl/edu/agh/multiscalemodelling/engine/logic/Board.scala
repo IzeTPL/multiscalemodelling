@@ -8,7 +8,7 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.{Color, Pixmap, PixmapIO, Texture}
 import pl.edu.agh.multiscalemodelling.engine.logic.boudarycondition.{BoundaryCondition, FixedBoundaryCondition, PeriodicBoudaryCondition}
 import pl.edu.agh.multiscalemodelling.engine.logic.neighbourhood._
-import pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth.NaiveSeedsGrowthCell
+import pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth.{NaiveSeedsGrowthBoard, NaiveSeedsGrowthCell}
 
 import scala.collection.mutable
 import scala.io.Source
@@ -141,7 +141,7 @@ abstract class Board() {
 
       case 0 => {
         if (res == JFileChooser.APPROVE_OPTION) {
-          val myVarsFromFile = Source.fromFile("myVars").getLines.toList
+          val myVarsFromFile = Source.fromFile(path).getLines.toList
 
           if (myVarsFromFile.nonEmpty) {
             cells = new util.ArrayList[Cell]()
@@ -358,6 +358,42 @@ abstract class Board() {
 
     val cell: Cell = cells.get(x * size.x + y)
     if (selectedGrains contains cell.seedID) selectedGrains -= cell.seedID else selectedGrains += cell.seedID
+
+  }
+
+  def secondStep(stepType: Int): Unit = {
+
+    if(stepType == 1) NaiveSeedsGrowthBoard.newID+=1
+    import scala.collection.JavaConversions._
+    for(cell <- cells) {
+
+      if(!selectedGrains.contains(cell.seedID)) {
+
+        cell.nextSeedID = 0
+        cell.nextState = State.EMPTY
+        cell.nextColor = Color.WHITE
+
+      } else {
+
+        stepType match {
+
+          case 0 => cell.nextState = State.SECONDPHASE
+          case 1 => {
+
+            cell.nextState = State.SECONDPHASE
+            cell.color = Color.MAGENTA
+            cell.nextColor = Color.MAGENTA
+            cell.nextSeedID = NaiveSeedsGrowthBoard.newID
+
+          }
+
+        }
+
+      }
+
+      cell.update()
+
+    }
 
   }
 

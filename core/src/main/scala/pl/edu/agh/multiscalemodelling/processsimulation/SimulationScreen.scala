@@ -21,15 +21,18 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var inclusionAmountField: TextField = _
   var inclusionSizeField: TextField = _
   var rule4ProbabilityField: TextField = _
+
   var widthLabel: Label = _
   var heightLabel: Label = _
   var seedLabel: Label = _
   var inclusionAmountLabel: Label = _
   var inclusionSizeLabel: Label = _
+
   var continousSeeding: CheckBox = _
   var showProgress: CheckBox = _
   var showBorders: CheckBox = _
   var grainShapeControl: CheckBox = _
+
   var seedButton: Button = _
   var toggleButton: Button = _
   var clearButton: Button = _
@@ -38,11 +41,15 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var importButton: Button = _
   var exportButton: Button = _
   var addInclusionsButton: Button = _
+  var applyButton: Button = _
+
   var neighbourhoodSelection: SelectBox[String] = _
   var boundaryConditionSelection: SelectBox[String] = _
   var seedTypeSelection: SelectBox[String] = _
   var fileTypeSelection: SelectBox[String] = _
   var inclusionType: SelectBox[String] = _
+  var secondStepSelection: SelectBox[String] = _
+
   var naiveSeedsGrowthLogic: NaiveSeedsGrowthLogic = _
   widthLabel = new Label("width", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   heightLabel = new Label("height", new Label.LabelStyle(new BitmapFont, Color.WHITE))
@@ -88,6 +95,8 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   importButton = new TextButton("Import", textButtonStyle)
   exportButton = new TextButton("Export", textButtonStyle)
   addInclusionsButton = new TextButton("Add inclusions", textButtonStyle)
+  applyButton = new TextButton("Apply", textButtonStyle)
+
   seedButton.addListener(new ClickListener)
   toggleButton.addListener(new ClickListener)
   clearButton.addListener(new ClickListener)
@@ -96,6 +105,8 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   importButton.addListener(new ClickListener)
   exportButton.addListener(new ClickListener)
   addInclusionsButton.addListener(new ClickListener)
+  applyButton.addListener(new ClickListener)
+
   val selectBoxStyle = new SelectBox.SelectBoxStyle
   selectBoxStyle.font = new BitmapFont
   selectBoxStyle.fontColor = Color.BLACK
@@ -160,7 +171,17 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   inclusionType.setItems("Circle", "Square")
   inclusionType.setSelectedIndex(0)
   inclusionType.addListener(new ChangeListener {
-    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = seedTypeSelection.getSelectedIndex match {
+    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = inclusionType.getSelectedIndex match {
+      case 0 =>
+      case 1 =>
+    }
+  })
+
+  secondStepSelection = new SelectBox[String](selectBoxStyle)
+  secondStepSelection.setItems("Substructure", "Dualphase")
+  secondStepSelection.setSelectedIndex(0)
+  secondStepSelection.addListener(new ChangeListener {
+    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = secondStepSelection.getSelectedIndex match {
       case 0 =>
       case 1 =>
     }
@@ -191,9 +212,6 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(seedLabel).expandX.fill
   table.add(seedField).expandX.fill
   table.row
-  table.add(continousSeeding).expandX.fill
-  table.add(timeField).expandX.fill
-  table.row
   table.add(showProgress).expandX.fill
   table.add(importButton).expandX.fill
   table.row
@@ -213,6 +231,9 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.row
   table.add(grainShapeControl).expandX.fill
   table.add(rule4ProbabilityField).expandX.fill
+  table.row
+  table.add(secondStepSelection).expandX.fill
+  table.add(applyButton).expand.fill
 
   naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(300, 300)
   logic = naiveSeedsGrowthLogic
@@ -232,10 +253,6 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     if (!logic.isPaused) {
       logic.started = true
       logic.iterate()
-      if (timer > timeField.getText.toFloat && continousSeeding.isChecked) {
-        timer = 0
-        logic.getBoard.seed(50)
-      }
     }
     handleInput()
   }
@@ -271,6 +288,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     if(importButton.isPressed && Gdx.input.justTouched) logic.getBoard.load(fileTypeSelection.getSelectedIndex)
     if(exportButton.isPressed && Gdx.input.justTouched) logic.getBoard.save(fileTypeSelection.getSelectedIndex)
     if(addInclusionsButton.isPressed && Gdx.input.justTouched) logic.getBoard.addInclusions(inclusionType.getSelectedIndex, inclusionAmountField.getText.toInt, inclusionSizeField.getText.toInt, logic.started)
+    if(applyButton.isPressed && Gdx.input.justTouched) logic.board.secondStep(secondStepSelection.getSelectedIndex)
 
   }
 

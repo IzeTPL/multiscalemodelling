@@ -21,8 +21,7 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
   seedID = 0
   nextColor = new Color(Color.BLACK)
-
-  var nextSeedID: Integer = 0
+  nextSeedID = 0
 
   override def checkNeighbors: Unit = currentState match {
 
@@ -215,12 +214,13 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
     import scala.collection.JavaConversions._
 
     for (cell: Cell <- neighbors) {
-      if (neighborSeeds.contains(cell.seedID)) {
+      if (neighborSeeds.contains(cell.seedID) && cell.currentState == State.ALIVE) {
 
         neighborSeeds.update(cell.seedID, neighborSeeds.getOrElse(cell.seedID, 0) + 1)
 
       } else {
 
+        if(cell.currentState == State.ALIVE)
         neighborSeeds.put(cell.seedID, 1)
 
       }

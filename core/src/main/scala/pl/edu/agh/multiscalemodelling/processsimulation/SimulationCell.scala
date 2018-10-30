@@ -10,5 +10,5 @@ object SimulationCell {
 }
 
 class SimulationCell(x: Int, y: Int) extends Cell(x, y) {
-  var nextSeedID: Integer = null
+/*  var nextSeedID: Integer = null*/
 }

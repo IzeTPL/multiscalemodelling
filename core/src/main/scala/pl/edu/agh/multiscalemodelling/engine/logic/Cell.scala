@@ -14,6 +14,7 @@ class Cell(x: Int, y: Int) extends ICell {
   var color: Color = _
   var nextColor: Color = _
   var seedID: Integer = _
+  var nextSeedID: Integer = _
 
   position = new Point(x, y)
   color = new Color(Color.WHITE)
