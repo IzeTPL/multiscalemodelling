@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics._
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.{SelectBox, Table}
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.Viewport
 import pl.edu.agh.multiscalemodelling.engine.Application
@@ -23,6 +23,8 @@ abstract class AbstractScreen(var application: Application) extends Screen {
   var table: Table = _
   var showProgressbool = false
   var showBordersbool = false
+
+  var grainBoundaryRenderType: SelectBox[String] = _
 
   timer = 0
   cellCamera = new OrthographicCamera
@@ -60,7 +62,7 @@ abstract class AbstractScreen(var application: Application) extends Screen {
     application.getSpriteBatch.begin()
     val width = Gdx.graphics.getHeight.toFloat / (logic.getBoard.getGreaterDimesion.toFloat / logic.getBoard.size.x.toFloat)
     val height = Gdx.graphics.getHeight.toFloat / (logic.getBoard.getGreaterDimesion.toFloat / logic.getBoard.size.y.toFloat)
-    val texture = logic.getBoard.draw(showProgressbool, showBordersbool)
+    val texture = logic.getBoard.draw(showProgressbool, showBordersbool, grainBoundaryRenderType.getSelectedIndex)
     application.getSpriteBatch.draw(texture, 0, Gdx.graphics.getHeight - height, width, height)
     application.getSpriteBatch.end()
     texture.dispose()

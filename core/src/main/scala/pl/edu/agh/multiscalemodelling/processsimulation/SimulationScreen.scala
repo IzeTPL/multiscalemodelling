@@ -187,6 +187,10 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     }
   })
 
+  grainBoundaryRenderType = new SelectBox[String](selectBoxStyle)
+  grainBoundaryRenderType.setItems("All","Selected")
+  grainBoundaryRenderType.setSelectedIndex(0)
+
   rule4ProbabilityField.addListener(new ChangeListener {
     override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = if(!rule4ProbabilityField.getText.isEmpty) NaiveSeedsGrowthCell.probability = rule4ProbabilityField.getText.toInt
   })
@@ -212,7 +216,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(seedLabel).expandX.fill
   table.add(seedField).expandX.fill
   table.row
-  table.add(showProgress).expandX.fill
+  table.add(grainBoundaryRenderType).expandX.fill
   table.add(importButton).expandX.fill
   table.row
   table.add(showBorders).expandX.fill

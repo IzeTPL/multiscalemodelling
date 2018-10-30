@@ -53,7 +53,7 @@ abstract class Board() {
 
   }
 
-  def draw(progress: Boolean, borders: Boolean): Texture = {
+  def draw(progress: Boolean, borders: Boolean, boundaryType: Int): Texture = {
     //val width = Gdx.graphics.getHeight / size.x
     //val height = Gdx.graphics.getHeight / size.y
     val board = new Pixmap(size.x, size.y, Pixmap.Format.RGBA8888)
@@ -67,11 +67,16 @@ abstract class Board() {
           sameID - 1
         }
       }
-      if (progress) if (cell.currentState eq State.EMPTY) board.setColor(Color.BLACK)
-      else if (cell.currentState eq State.ALIVE) board.setColor(Color.WHITE)
-      else board.setColor(Color.BLUE)
-      else if (sameID != cell.neighbors.head.size && sameID > 0 && borders) board.setColor(Color.BLACK)
-      else board.setColor(cell.color)
+
+      var skip = false
+      if (boundaryType == 1 && !selectedGrains.contains(cell)) skip = true
+
+      if (progress)
+        if (cell.currentState eq State.EMPTY) board.setColor(Color.BLACK)
+        else if (cell.currentState eq State.ALIVE) board.setColor(Color.WHITE)
+          else board.setColor(Color.BLUE)
+        else if (sameID != cell.neighbors.head.size && sameID > 0 && borders && !skip) board.setColor(Color.BLACK)
+          else board.setColor(cell.color)
       board.drawPixel(cell.position.x, cell.position.y)
     }
     val texture = new Texture(board)
@@ -107,7 +112,7 @@ abstract class Board() {
       }
 
       case 1 => {
-        val texture = draw(progress = false, borders = false)
+        val texture = draw(progress = false, borders = false, 0)
         if (res == JFileChooser.APPROVE_OPTION) {
           PixmapIO.writePNG(new FileHandle(chooser.getSelectedFile.getName + ".png"), texture.getTextureData.consumePixmap())
         }
