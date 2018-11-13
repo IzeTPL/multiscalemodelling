@@ -54,30 +54,14 @@ abstract class Board() {
   }
 
   def draw(progress: Boolean, borders: Boolean, boundaryType: Int): Texture = {
-    //val width = Gdx.graphics.getHeight / size.x
-    //val height = Gdx.graphics.getHeight / size.y
+
     val board = new Pixmap(size.x, size.y, Pixmap.Format.RGBA8888)
     import scala.collection.JavaConversions._
     for (cell <- cells) {
-      var sameID = 0
-      import scala.collection.JavaConversions._
-      for (neighbor <- cell.neighbors.head) {
-        if (Objects.equals(cell.color, neighbor.color)) {
-          sameID += 1
-          sameID - 1
-        }
-      }
 
-      var skip = false
-      if (boundaryType == 1 && !selectedGrains.contains(cell)) skip = true
-
-      if (progress)
-        if (cell.currentState eq State.EMPTY) board.setColor(Color.BLACK)
-        else if (cell.currentState eq State.ALIVE) board.setColor(Color.WHITE)
-          else board.setColor(Color.BLUE)
-        else if (sameID != cell.neighbors.head.size && sameID > 0 && borders && !skip) board.setColor(Color.BLACK)
-          else board.setColor(cell.color)
+      board.setColor(cell.color)
       board.drawPixel(cell.position.x, cell.position.y)
+
     }
     val texture = new Texture(board)
     //board.dispose()
@@ -241,8 +225,6 @@ abstract class Board() {
 
   }
 
-
-
     def squareInclusions(inclusionAmount: Int, inclusionSize: Int, started: Boolean): Unit = {
 
       val random = new Random
@@ -358,6 +340,31 @@ abstract class Board() {
 
 
     }
+
+  def addBorders(borderType: Int): Unit = {
+
+    import scala.collection.JavaConversions._
+    for (cell <- cells) {
+      var sameID = 0
+      import scala.collection.JavaConversions._
+      for (neighbor <- cell.neighbors.head) {
+        if (Objects.equals(cell.color, neighbor.color)) {
+          sameID += 1
+          sameID - 1
+        }
+      }
+
+      var skip = false
+      if (borderType == 1 && !selectedGrains.contains(cell)) skip = true
+
+      if (sameID != cell.neighbors.head.size && sameID > 0 && !skip) {
+        cell.nextState = State.INCLUSION
+        cell.nextColor = Color.BLACK
+      }
+
+    }
+
+  }
 
   def selectGrain(x: Int, y: Int): Unit = {
 

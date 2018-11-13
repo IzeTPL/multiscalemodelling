@@ -17,20 +17,18 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var widthField: TextField = _
   var heightField: TextField = _
   var seedField: TextField = _
-  var timeField: TextField = _
   var inclusionAmountField: TextField = _
   var inclusionSizeField: TextField = _
   var rule4ProbabilityField: TextField = _
+  var borderThicknessField: TextField = _
 
   var widthLabel: Label = _
   var heightLabel: Label = _
   var seedLabel: Label = _
   var inclusionAmountLabel: Label = _
   var inclusionSizeLabel: Label = _
+  var borderThicknessLabel: Label = _
 
-  var continousSeeding: CheckBox = _
-  var showProgress: CheckBox = _
-  var showBorders: CheckBox = _
   var grainShapeControl: CheckBox = _
 
   var seedButton: Button = _
@@ -42,10 +40,10 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var exportButton: Button = _
   var addInclusionsButton: Button = _
   var applyButton: Button = _
+  var showBorders: Button = _
 
   var neighbourhoodSelection: SelectBox[String] = _
   var boundaryConditionSelection: SelectBox[String] = _
-  var seedTypeSelection: SelectBox[String] = _
   var fileTypeSelection: SelectBox[String] = _
   var inclusionType: SelectBox[String] = _
   var secondStepSelection: SelectBox[String] = _
@@ -53,10 +51,10 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var naiveSeedsGrowthLogic: NaiveSeedsGrowthLogic = _
   widthLabel = new Label("width", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   heightLabel = new Label("height", new Label.LabelStyle(new BitmapFont, Color.WHITE))
-  seedLabel = new Label("Amount", new Label.LabelStyle(new BitmapFont, Color.WHITE))
-  seedLabel.setVisible(true)
   inclusionAmountLabel = new Label("Inclusions amount", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   inclusionSizeLabel = new Label("Inclusion size", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+  borderThicknessLabel = new Label("Border thickness", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+
   val textFieldStyle = new TextField.TextFieldStyle
   textFieldStyle.font = new BitmapFont
   textFieldStyle.fontColor = Color.BLACK
@@ -64,28 +62,29 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   widthField = new TextField("300", textFieldStyle)
   heightField = new TextField("300", textFieldStyle)
   seedField = new TextField("50", textFieldStyle)
-  timeField = new TextField("1", textFieldStyle)
   inclusionAmountField = new TextField("1", textFieldStyle)
   inclusionSizeField = new TextField("2", textFieldStyle)
   rule4ProbabilityField = new TextField("10", textFieldStyle)
-  seedField.setVisible(true)
+  borderThicknessField = new TextField("1", textFieldStyle)
+
   val textButtonStyle = new TextButton.TextButtonStyle
   textButtonStyle.font = new BitmapFont
   textButtonStyle.fontColor = Color.WHITE
   textButtonStyle.overFontColor = Color.BLACK
   textButtonStyle.over = DrawableColor.getColor(Color.WHITE)
+
   var pixmap = new Pixmap(10, 10, Pixmap.Format.RGBA8888)
   pixmap.setColor(Color.WHITE)
   pixmap.fill()
+
   val drawable1 = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)))
   pixmap = new Pixmap(10, 10, Pixmap.Format.RGBA8888)
   pixmap.setColor(Color.BLACK)
   pixmap.fill()
+
   val drawable2 = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)))
   val checkBoxStyle = new CheckBox.CheckBoxStyle(drawable1, drawable2, new BitmapFont, Color.WHITE)
-  continousSeeding = new CheckBox("Continous nucleons", checkBoxStyle)
-  showProgress = new CheckBox("Show progress", checkBoxStyle)
-  showBorders = new CheckBox("Show borders", checkBoxStyle)
+
   grainShapeControl = new CheckBox("Grain shape control", checkBoxStyle)
   seedButton = new TextButton("Place nucleons", textButtonStyle)
   toggleButton = new TextButton("Play", textButtonStyle)
@@ -96,6 +95,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   exportButton = new TextButton("Export", textButtonStyle)
   addInclusionsButton = new TextButton("Add inclusions", textButtonStyle)
   applyButton = new TextButton("Apply", textButtonStyle)
+  showBorders = new TextButton("Show borders", textButtonStyle)
 
   seedButton.addListener(new ClickListener)
   toggleButton.addListener(new ClickListener)
@@ -106,6 +106,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   exportButton.addListener(new ClickListener)
   addInclusionsButton.addListener(new ClickListener)
   applyButton.addListener(new ClickListener)
+  showBorders.addListener(new ClickListener)
 
   val selectBoxStyle = new SelectBox.SelectBoxStyle
   selectBoxStyle.font = new BitmapFont
@@ -138,34 +139,10 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   boundaryConditionSelection.addListener(new ChangeListener() {
     override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = logic.getBoard.setNeighbourhood(logic.getBoard.neighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
   })
-  seedTypeSelection = new SelectBox[String](selectBoxStyle)
-  seedTypeSelection.setItems("Amount", "Regular nucleons", "Random with radius")
-  seedTypeSelection.setSelectedIndex(0)
-  seedTypeSelection.addListener(new ChangeListener() {
-    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = seedTypeSelection.getSelectedIndex match {
-      case 0 =>
-        seedField.setVisible(true)
-        seedLabel.setVisible(true)
-        seedLabel.setText("Amount")
-      case 1 =>
-        seedField.setVisible(true)
-        seedLabel.setVisible(true)
-        seedLabel.setText("Distance")
-      case 2 =>
-        seedField.setVisible(true)
-        seedLabel.setVisible(true)
-        seedLabel.setText("Radius")
-    }
-  })
 
   fileTypeSelection = new SelectBox[String](selectBoxStyle)
   fileTypeSelection.setItems("Json", "Bitmap")
   fileTypeSelection.setSelectedIndex(0)
-  fileTypeSelection.addListener(new ChangeListener {
-    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = seedTypeSelection.getSelectedIndex match {
-      case 0 =>
-    }
-  })
 
   inclusionType = new SelectBox[String](selectBoxStyle)
   inclusionType.setItems("Circle", "Square")
@@ -202,7 +179,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(heightField).width(uiViewport.getWorldWidth / 2)
   table.row
   table.add(seedButton).expandX.fill
-  table.add(seedTypeSelection).expandX.fill
+  table.add(seedField).expandX.fill
   table.row
   table.add(clearButton).expandX.fill
   table.add(nextButton).expandX.fill
@@ -213,17 +190,16 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(neighbourhoodSelection).expandX.fill
   table.add(boundaryConditionSelection).expandX.fill
   table.row
-  table.add(seedLabel).expandX.fill
-  table.add(seedField).expandX.fill
-  table.row
-  table.add(grainBoundaryRenderType).expandX.fill
   table.add(importButton).expandX.fill
-  table.row
-  table.add(showBorders).expandX.fill
   table.add(exportButton).expandX.fill
   table.row
   table.add(fileTypeSelection).expandX.fill
-  table.add(inclusionType).expandX.fill
+  table.row
+  table.add(showBorders).expandX.fill
+  table.add(grainBoundaryRenderType).expandX.fill
+  table.row
+  table.add(borderThicknessLabel).expandX.fill
+  table.add(borderThicknessField).expandX.fill
   table.row
   table.add(inclusionAmountLabel).expandX.fill
   table.add(inclusionAmountField).expandX.fill
@@ -231,6 +207,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(inclusionSizeLabel).expandX.fill
   table.add(inclusionSizeField).expandX.fill
   table.row
+  table.add(inclusionType).expandX.fill
   table.add(addInclusionsButton).expandX.fill
   table.row
   table.add(grainShapeControl).expandX.fill
@@ -250,8 +227,6 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
 
   override def render(delta: Float): Unit = {
     super.render(delta)
-    showProgressbool = showProgress.isChecked
-    showBordersbool = showBorders.isChecked
     NaiveSeedsGrowthCell.grainShapeControl = grainShapeControl.isChecked
     update(delta)
     if (!logic.isPaused) {
@@ -273,14 +248,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
       logic.board.selectGrain((vector2.x / (Gdx.graphics.getHeight.toFloat / logic.getBoard.size.x.toFloat)).toInt, (vector2.y / (Gdx.graphics.getHeight.toFloat / logic.getBoard.size.y.toFloat)).toInt)
     }
     if (Gdx.input.isKeyJustPressed(Input.Keys.P)) logic.pause()
-    if (seedButton.isPressed && Gdx.input.justTouched) seedTypeSelection.getSelectedIndex match {
-      case 0 =>
-        logic.getBoard.seed(seedField.getText.toInt)
-      case 1 =>
-        //logic.getBoard.asInstanceOf[NaiveSeedsGrowthBoard].seed(seedField.getText.toInt)
-      case 2 =>
-        //logic.getBoard.asInstanceOf[NaiveSeedsGrowthBoard].radiusSeed(seedField.getText.toInt)
-    }
+    if (seedButton.isPressed && Gdx.input.justTouched) logic.getBoard.seed(seedField.getText.toInt)
     if (toggleButton.isPressed && Gdx.input.justTouched) logic.pause()
     if (clearButton.isPressed && Gdx.input.justTouched) logic.getBoard.clear()
     if (nextButton.isPressed && Gdx.input.justTouched && logic.isPaused) logic.iterate()
@@ -293,6 +261,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     if(exportButton.isPressed && Gdx.input.justTouched) logic.getBoard.save(fileTypeSelection.getSelectedIndex)
     if(addInclusionsButton.isPressed && Gdx.input.justTouched) logic.getBoard.addInclusions(inclusionType.getSelectedIndex, inclusionAmountField.getText.toInt, inclusionSizeField.getText.toInt, logic.started)
     if(applyButton.isPressed && Gdx.input.justTouched) logic.board.secondStep(secondStepSelection.getSelectedIndex)
+    if(showBorders.isPressed && Gdx.input.justTouched) logic.board.addBorders(grainBoundaryRenderType.getSelectedIndex)
 
   }
 

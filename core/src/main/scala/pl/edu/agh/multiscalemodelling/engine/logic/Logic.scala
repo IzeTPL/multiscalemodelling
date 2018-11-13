@@ -12,8 +12,8 @@ abstract class Logic() {
   def pause(): Unit = isPaused = !isPaused
 
   def iterate(): Unit = {
-    //val threadsNum = Runtime.getRuntime.availableProcessors * Runtime.getRuntime.availableProcessors
-    val threadsNum = 1
+    val threadsNum = Runtime.getRuntime.availableProcessors * Runtime.getRuntime.availableProcessors
+    //val threadsNum = 2
     var start = 0
     var end = 0
     val threads = new Array[Thread](threadsNum)
@@ -26,6 +26,7 @@ abstract class Logic() {
       threads(i) = createThread(board, start, end)
       threads(i).setName(Integer.toString(i))
       threads(i).start()
+
       start = end
       i += 1
       i - 1

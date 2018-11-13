@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaCompilerConfiguration">
+    <option name="incrementalityType" value="SBT" />
+    <profile name="sbt 1" modules="multiscale-modelling_387" />
+    <profile name="sbt 3" modules="all-platforms,core,desktop">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-Xlint" />
+        <parameter value="-Ywarn-dead-code" />
+        <parameter value="-Ywarn-value-discard" />
+        <parameter value="-Ywarn-numeric-widen" />
+        <parameter value="-Ywarn-unused" />
+        <parameter value="-Ywarn-unused-import" />
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Xfuture" />
+        <parameter value="-Yno-adapted-args" />
+      </parameters>
+    </profile>
+  </component>
+</project>

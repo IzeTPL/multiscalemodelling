@@ -5,6 +5,8 @@ object Settings {
 
   import LibgdxBuild.libgdxVersion
 
+  val circeVersion = "0.10.0"
+
   lazy val nativeExtractions = SettingKey[Seq[(String, NameFilter, File)]](
     "native-extractions", "(jar name partial, sbt.NameFilter of files to extract, destination directory)"
   )

@@ -234,6 +234,7 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
         nextSeedID = key
       }
     }
+
     }
 
     max
