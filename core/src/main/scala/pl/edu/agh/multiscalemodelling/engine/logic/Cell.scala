@@ -3,6 +3,7 @@ package pl.edu.agh.multiscalemodelling.engine.logic
 import java.util
 
 import com.badlogic.gdx.graphics.Color
+import pl.edu.agh.multiscalemodelling.engine.logic.OperationMode.OperationMode
 import pl.edu.agh.multiscalemodelling.model.ICell
 
 class Cell(x: Int, y: Int) extends ICell {
@@ -19,7 +20,7 @@ class Cell(x: Int, y: Int) extends ICell {
   position = new Point(x, y)
   color = new Color(Color.WHITE)
 
-  override def checkNeighbors: Unit = {}
+  override def checkNeighbors(mode: OperationMode): Unit = {}
   override def update(): Unit = currentState = nextState
 
 

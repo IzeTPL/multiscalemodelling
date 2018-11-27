@@ -1,9 +1,11 @@
 package pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth
 
 import java._
+import java.util.Objects
 
 import com.badlogic.gdx.graphics.Color
-import pl.edu.agh.multiscalemodelling.engine.logic.{Cell, State}
+import pl.edu.agh.multiscalemodelling.engine.logic.OperationMode.OperationMode
+import pl.edu.agh.multiscalemodelling.engine.logic.{Cell, Logic, OperationMode, State}
 
 import scala.collection.mutable
 import scala.util.Random
@@ -23,27 +25,22 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
   nextColor = new Color(Color.BLACK)
   nextSeedID = 0
 
-  override def checkNeighbors: Unit = currentState match {
+  override def checkNeighbors(mode: OperationMode): Unit = currentState match {
 
-    case State.EMPTY => {
-
-      if(NaiveSeedsGrowthCell.grainShapeControl) {
-
-        if (checkRule1())
-          if (checkRule2())
-            if (checkRule3())
-              checkRule4()
-
-      } else {
-
-        checkDefaultRule()
-
+    case State.EMPTY =>
+      mode match {
+        case OperationMode.SIMPLE_GROWTH =>
+          if(NaiveSeedsGrowthCell.grainShapeControl) {
+            if (checkRule1())
+              if (checkRule2())
+                if (checkRule3())
+                  checkRule4()
+          } else {
+            checkDefaultRule()
+          }
       }
-
-    }
-
+    case State.ALIVE if Logic.operationMode == OperationMode.SIMPLE_MCS => mcsRule()
     case _ =>
-
   }
 
   def swap(): Unit = {
@@ -58,7 +55,7 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
       }
 
-      case _ => {
+      case _ =>
 
         val random = new Random
         nextState = State.ALIVE
@@ -71,59 +68,99 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
         NaiveSeedsGrowthCell.getSeedList.put(NaiveSeedsGrowthBoard.newID, nextColor)
 
-      }
-
     }
 
     update()
 
   }
 
-
   override def update(): Unit = {
-
     (currentState, nextState) match {
-
       case (State.EMPTY, State.ALIVE) => {
-
         color = nextColor
         seedID = nextSeedID
-
       }
 
       case (State.ALIVE, State.EMPTY) => {
-
         color = nextColor
         seedID = nextSeedID
-
       }
 
       case (State.EMPTY, State.EMPTY) => {
-
         color = Color.WHITE
         seedID = 0
-
       }
 
       case (State.ALIVE, State.INCLUSION) => {
-
         color = Color.BLACK
         seedID = 0
-
       }
 
       case (State.EMPTY, State.INCLUSION) => {
-
         color = Color.BLACK
         seedID = 0
-
       }
+      case (State.ALIVE, State.ALIVE) =>
+        color = nextColor
+        seedID = nextSeedID
+      case _ => println(s"Unhandled state exception: $currentState -> $nextState")
+    }
+    super.update()
 
-      case _ => Left("Unhandled state change")
+  }
 
+  def mcsRule(): Unit = {
+
+    var energy = 0
+    var newEnergy = 0
+    val random = new Random
+    val neighborsID = new Array[Int](neighbors.get(0).size)
+
+    var i = 0
+    while ( {
+      i < neighbors.get(0).size()
+    }) {
+      neighborsID(i) = neighbors.get(0).get(i).seedID
+        i += 1
+        i - 1
     }
 
-    super.update()
+/*    var randomIndex = random.nextInt(neighbors.get(0).size)
+    var seedID: Int = 0
+    while (neighbors.get(0).get(randomIndex).currentState != State.ALIVE) {
+      seedID = neighborsID(random.nextInt(neighbors.get(0).size))
+    }*/
+
+    //seedID = neighborsID(random.nextInt(neighbors.get(0).size))
+
+    import scala.collection.JavaConversions._
+    for (cell <- neighbors.head) {
+      if(cell.currentState == State.ALIVE) {
+        if (this.seedID != cell.seedID) energy += 1
+        if (seedID != cell.seedID) newEnergy += 1
+      }
+    }
+
+    //println(s"Energy: $energy <----------> newEnergy: $newEnergy")
+
+    if (newEnergy - energy <= 0) {
+      nextSeedID = seedID
+      nextColor = NaiveSeedsGrowthCell.seedList.getOrElse(seedID, Color.BLACK)
+    }
+
+  }
+
+  def toRemove: Boolean = {
+    var sameID = 0
+    import scala.collection.JavaConversions._
+    for (cell <- neighbors.head) {
+      if (cell.seedID == seedID) {
+        sameID += 1
+        sameID - 1
+      }
+    }
+
+    if(sameID == neighbors.head.size() || currentState == State.SECONDPHASE) true else false
 
   }
 

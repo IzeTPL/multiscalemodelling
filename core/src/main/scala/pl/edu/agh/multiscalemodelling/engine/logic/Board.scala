@@ -16,12 +16,12 @@ import scala.io.Source
 abstract class Board() {
 
   var size: Point = _
-  var cells: util.List[Cell] = _
+  var cells: util.List[NaiveSeedsGrowthCell] = _
   var boundaryConditions: util.List[BoundaryCondition] = _
   var neighborhoods: util.List[Neighborhood] = _
   var selectedGrains: mutable.HashSet[Int] = new mutable.HashSet[Int]()
 
-  cells = new util.ArrayList[Cell]
+  cells = new util.ArrayList[NaiveSeedsGrowthCell]
   boundaryConditions = new util.ArrayList[BoundaryCondition]
   neighborhoods = new util.ArrayList[Neighborhood]
   boundaryConditions.add(new FixedBoundaryCondition)
@@ -39,6 +39,43 @@ abstract class Board() {
       }
       cell.update()
     }
+  }
+
+  def fillStates(statesAmount: Int): Unit = {
+
+    //clear()
+
+    val random = new Random
+
+    var i = 0
+    while ( {
+      i < statesAmount
+    }) {
+
+      var color = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
+      while ( {
+        (color.r + color.g + color.a) < 0.5f
+      }) color = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
+      NaiveSeedsGrowthCell.seedList.put({
+        NaiveSeedsGrowthBoard.newID += 1
+        NaiveSeedsGrowthBoard.newID
+      }, color)
+      i += 1
+      i - 1
+    }
+
+    import scala.collection.JavaConversions._
+    for (cell <- cells) {
+      if (cell.currentState != State.SECONDPHASE) {
+      val newID = random.nextInt(NaiveSeedsGrowthCell.seedList.size - 1) + 1
+
+      cell.nextColor = NaiveSeedsGrowthCell.seedList.getOrElse(newID, Color.BLACK)
+      cell.nextState = State.ALIVE
+      cell.nextSeedID = newID
+      cell.update()
+    }
+    }
+
   }
 
   def randomize(cell: Cell, random: Random): Unit = if (cell.currentState == State.EMPTY) cell.nextState = State.ALIVE
@@ -133,7 +170,7 @@ abstract class Board() {
           val myVarsFromFile = Source.fromFile(path).getLines.toList
 
           if (myVarsFromFile.nonEmpty) {
-            cells = new util.ArrayList[Cell]()
+            cells = new util.ArrayList[NaiveSeedsGrowthCell]()
             NaiveSeedsGrowthCell.seedList = new mutable.HashMap[Int, Color]()
             val boardData = myVarsFromFile.head.split(",")
             size.x = boardData(0).toInt

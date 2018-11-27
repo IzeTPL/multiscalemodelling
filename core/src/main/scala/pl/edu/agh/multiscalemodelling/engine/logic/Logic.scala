@@ -1,5 +1,10 @@
 package pl.edu.agh.multiscalemodelling.engine.logic
 
+object Logic {
+  var operationMode: OperationMode.Value = OperationMode.SIMPLE_GROWTH
+  var allProcessed = false
+}
+
 abstract class Logic() {
 
   var board: Board = _
@@ -12,8 +17,9 @@ abstract class Logic() {
   def pause(): Unit = isPaused = !isPaused
 
   def iterate(): Unit = {
-    val threadsNum = Runtime.getRuntime.availableProcessors * Runtime.getRuntime.availableProcessors
-    //val threadsNum = 2
+    Logic.allProcessed = true
+    //val threadsNum = Runtime.getRuntime.availableProcessors * Runtime.getRuntime.availableProcessors
+    val threadsNum = 1
     var start = 0
     var end = 0
     val threads = new Array[Thread](threadsNum)
@@ -23,7 +29,10 @@ abstract class Logic() {
       else end += (board.cells.size / threadsNum) + 1
       val condition = (end - start) * (i + 1)
       if (condition > board.cells.size) end -= (condition - board.cells.size)
-      threads(i) = createThread(board, start, end)
+      threads(i) = Logic.operationMode match {
+        case OperationMode.SIMPLE_GROWTH => createThread(board, start, end)
+        case OperationMode.SIMPLE_MCS => new MonteCarloLogicThread(board.cells.subList(start, end))
+      }
       threads(i).setName(Integer.toString(i))
       threads(i).start()
 
