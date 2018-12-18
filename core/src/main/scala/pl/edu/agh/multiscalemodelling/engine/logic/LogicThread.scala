@@ -2,6 +2,7 @@ package pl.edu.agh.multiscalemodelling.engine.logic
 
 import java.util
 
+import pl.edu.agh.multiscalemodelling.engine.logic.enumeration.{OperationMode, State}
 import pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth.NaiveSeedsGrowthCell
 
 class LogicThread(var cells: util.List[NaiveSeedsGrowthCell]) extends Thread {

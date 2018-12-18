@@ -4,8 +4,9 @@ import java._
 import java.util.Objects
 
 import com.badlogic.gdx.graphics.Color
-import pl.edu.agh.multiscalemodelling.engine.logic.OperationMode.OperationMode
-import pl.edu.agh.multiscalemodelling.engine.logic.{Cell, Logic, OperationMode, State}
+import pl.edu.agh.multiscalemodelling.engine.logic.enumeration.{OperationMode, State}
+import pl.edu.agh.multiscalemodelling.engine.logic.enumeration.OperationMode.OperationMode
+import pl.edu.agh.multiscalemodelling.engine.logic.{Cell, Logic}
 
 import scala.collection.mutable
 import scala.util.Random
@@ -39,7 +40,11 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
             checkDefaultRule()
           }
       }
-    case State.ALIVE if Logic.operationMode == OperationMode.SIMPLE_MCS => mcsRule()
+    case State.ALIVE => Logic.operationMode match {
+      case OperationMode.SIMPLE_MCS => mcsRule()
+      case OperationMode.RECRYSTALLIZATION_MCS => recrystallize()
+      case _ =>
+    }
     case _ =>
   }
 
@@ -109,6 +114,34 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
 
   }
 
+  def recrystallize(): Unit = {
+
+    val random = new Random
+    var energy = 0
+    var newEnergy = 0
+
+    if (neighbors.get(0).get(random.nextInt(neighbors.get(0).size)).currentState == State.RECRYSTALLIZED) {
+
+      import scala.collection.JavaConversions._
+        for (cell <- neighbors.head) {
+          if(cell.currentState == State.ALIVE) {
+            if (this.seedID != cell.seedID) energy += 1
+            if (seedID != cell.seedID) newEnergy += 1
+          }
+        }
+
+      energy += recrystallizationEnergy
+
+      if (newEnergy - energy <= 0) {
+        nextSeedID = seedID
+        nextState = State.RECRYSTALLIZED
+        nextColor = NaiveSeedsGrowthCell.seedList.getOrElse(seedID, Color.BLACK)
+      }
+
+    }
+
+  }
+
   def mcsRule(): Unit = {
 
     var energy = 0
@@ -125,13 +158,14 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
         i - 1
     }
 
-/*    var randomIndex = random.nextInt(neighbors.get(0).size)
+    var randomIndex = random.nextInt(neighbors.get(0).size)
     var seedID: Int = 0
-    while (neighbors.get(0).get(randomIndex).currentState != State.ALIVE) {
-      seedID = neighborsID(random.nextInt(neighbors.get(0).size))
-    }*/
 
-    //seedID = neighborsID(random.nextInt(neighbors.get(0).size))
+    while (neighbors.get(0).get(randomIndex).currentState != State.ALIVE) {
+      randomIndex = random.nextInt(neighbors.get(0).size)
+    }
+
+    seedID = neighborsID(randomIndex)
 
     import scala.collection.JavaConversions._
     for (cell <- neighbors.head) {

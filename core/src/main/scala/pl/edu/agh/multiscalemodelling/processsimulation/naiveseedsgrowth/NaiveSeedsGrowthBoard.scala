@@ -3,7 +3,8 @@ package pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth
 import java.util.Random
 
 import com.badlogic.gdx.graphics.Color
-import pl.edu.agh.multiscalemodelling.engine.logic.{Board, Cell, Point, State}
+import pl.edu.agh.multiscalemodelling.engine.logic.enumeration.State
+import pl.edu.agh.multiscalemodelling.engine.logic.{Board, Cell, Point}
 
 object NaiveSeedsGrowthBoard {
   var newID = 0

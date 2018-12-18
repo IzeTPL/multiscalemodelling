@@ -7,6 +7,8 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.{Color, Pixmap, PixmapIO, Texture}
 import pl.edu.agh.multiscalemodelling.engine.logic.boudarycondition.{BoundaryCondition, FixedBoundaryCondition, PeriodicBoudaryCondition}
+import pl.edu.agh.multiscalemodelling.engine.logic.enumeration.EnergyDistributionType.EnergyDistributionType
+import pl.edu.agh.multiscalemodelling.engine.logic.enumeration.{EnergyDistributionType, OperationMode, RenderMode, State}
 import pl.edu.agh.multiscalemodelling.engine.logic.neighbourhood._
 import pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth.{NaiveSeedsGrowthBoard, NaiveSeedsGrowthCell}
 
@@ -24,7 +26,6 @@ abstract class Board() {
   cells = new util.ArrayList[NaiveSeedsGrowthCell]
   boundaryConditions = new util.ArrayList[BoundaryCondition]
   neighborhoods = new util.ArrayList[Neighborhood]
-  boundaryConditions.add(new FixedBoundaryCondition)
   boundaryConditions.add(new PeriodicBoudaryCondition)
 
   def seed(amount: Int): Unit = {
@@ -38,6 +39,79 @@ abstract class Board() {
         i - 1
       }
       cell.update()
+    }
+
+    Logic.operationMode = OperationMode.SIMPLE_GROWTH
+
+  }
+
+  def distributeEnergy(energyDistributionType: EnergyDistributionType): Unit = {
+
+    import scala.collection.JavaConversions._
+
+    for (cell <- cells) {
+
+      energyDistributionType match {
+        case EnergyDistributionType.HETEROGENOUS => {
+
+          var sameID = 0
+          import scala.collection.JavaConversions._
+          /*         for (neighbor <- cell.neighbors.head) {
+            if (Objects.equals(cell.color, neighbor.color)) {
+              sameID += 1
+              sameID - 1
+            }
+          }*/
+
+          if (!Objects.equals(cell.color, cell.neighbors.head.get(0).color)) sameID += 1
+          if (!Objects.equals(cell.color, cell.neighbors.head.get(1).color)) sameID += 1
+          if (!Objects.equals(cell.color, cell.neighbors.head.get(3).color)) sameID += 1
+
+          if (sameID > 0) cell.recrystallizationEnergy = 7
+          else cell.recrystallizationEnergy = 2
+
+        }
+        case EnergyDistributionType.HOMOGENOUS => cell.recrystallizationEnergy = 5
+      }
+
+    }
+
+      val random = new Random
+      var i = 0
+      while (i < 100) {
+        val cell = cells.get(random.nextInt(size.x * size.y))
+        randomRecrystallizationNucleation(cell, random)
+        if(cell.nextState == State.ALIVE ){
+          i+=1
+          i - 1
+        }
+        cell.update()
+      }
+
+    Logic.operationMode = OperationMode.RECRYSTALLIZATION_MCS
+
+  }
+
+  def randomRecrystallizationNucleation(cell: Cell, random: Random): Unit = {
+
+    if (cell.currentState == State.ALIVE) cell.nextState = State.RECRYSTALLIZED
+
+    if (cell.nextState eq State.RECRYSTALLIZED) {
+      var color = new Color(random.nextFloat, 0, 0, 1)
+      while ( {
+        color.r < 0.2f
+      }) color = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
+      cell.nextColor = color
+      cell.nextState = State.RECRYSTALLIZED
+      cell.asInstanceOf[NaiveSeedsGrowthCell].nextSeedID = {
+        NaiveSeedsGrowthBoard.newID += 1
+        NaiveSeedsGrowthBoard.newID
+      }
+      NaiveSeedsGrowthCell.getSeedList.put(
+        NaiveSeedsGrowthBoard.newID,
+        color
+      )
+      ()
     }
   }
 
@@ -90,13 +164,23 @@ abstract class Board() {
 
   }
 
-  def draw(progress: Boolean, borders: Boolean, boundaryType: Int): Texture = {
+  def draw(renderMode: Boolean): Texture = {
 
     val board = new Pixmap(size.x, size.y, Pixmap.Format.RGBA8888)
     import scala.collection.JavaConversions._
     for (cell <- cells) {
 
-      board.setColor(cell.color)
+      if (renderMode) {
+
+        val color: Float = (255-0)/(7-2)*(cell.recrystallizationEnergy-7)+255
+
+        board.setColor(new Color(0, color, 255 - color, 1))
+
+      } else {
+        board.setColor(cell.color)
+      }
+
+
       board.drawPixel(cell.position.x, cell.position.y)
 
     }
@@ -133,7 +217,7 @@ abstract class Board() {
       }
 
       case 1 => {
-        val texture = draw(progress = false, borders = false, 0)
+        val texture = draw(false)
         if (res == JFileChooser.APPROVE_OPTION) {
           PixmapIO.writePNG(new FileHandle(chooser.getSelectedFile.getName + ".png"), texture.getTextureData.consumePixmap())
         }

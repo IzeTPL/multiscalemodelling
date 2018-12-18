@@ -9,6 +9,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.Viewport
 import pl.edu.agh.multiscalemodelling.engine.Application
 import pl.edu.agh.multiscalemodelling.engine.logic.Logic
+import pl.edu.agh.multiscalemodelling.engine.logic.enumeration.RenderMode
 
 abstract class AbstractScreen(var application: Application) extends Screen {
 
@@ -21,8 +22,7 @@ abstract class AbstractScreen(var application: Application) extends Screen {
   var stage: Stage = _
   var root: Table = _
   var table: Table = _
-  var showProgressbool = false
-  var showBordersbool = false
+  var renderMode: Boolean = false
 
   var grainBoundaryRenderType: SelectBox[String] = _
 
@@ -62,7 +62,7 @@ abstract class AbstractScreen(var application: Application) extends Screen {
     application.getSpriteBatch.begin()
     val width = Gdx.graphics.getHeight.toFloat / (logic.getBoard.getGreaterDimesion.toFloat / logic.getBoard.size.x.toFloat)
     val height = Gdx.graphics.getHeight.toFloat / (logic.getBoard.getGreaterDimesion.toFloat / logic.getBoard.size.y.toFloat)
-    val texture = logic.getBoard.draw(showProgressbool, showBordersbool, grainBoundaryRenderType.getSelectedIndex)
+    val texture = logic.getBoard.draw(renderMode)
     application.getSpriteBatch.draw(texture, 0, Gdx.graphics.getHeight - height, width, height)
     application.getSpriteBatch.end()
     texture.dispose()

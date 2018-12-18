@@ -8,7 +8,8 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui._
 import com.badlogic.gdx.scenes.scene2d.utils.{ChangeListener, ClickListener, TextureRegionDrawable}
 import pl.edu.agh.multiscalemodelling.engine.Application
-import pl.edu.agh.multiscalemodelling.engine.logic.{Logic, OperationMode}
+import pl.edu.agh.multiscalemodelling.engine.logic.enumeration.{EnergyDistributionType, OperationMode, RenderMode}
+import pl.edu.agh.multiscalemodelling.engine.logic.Logic
 import pl.edu.agh.multiscalemodelling.engine.logic.neighbourhood.MooreNeighbourHood
 import pl.edu.agh.multiscalemodelling.engine.render.{AbstractScreen, DrawableColor}
 import pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth.{NaiveSeedsGrowthBoard, NaiveSeedsGrowthCell, NaiveSeedsGrowthLogic}
@@ -33,6 +34,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var borderThicknessLabel: Label = _
 
   var grainShapeControl: CheckBox = _
+  var renderEnergy: CheckBox = _
 
   var seedButton: Button = _
   var toggleButton: TextButton = _
@@ -45,9 +47,9 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var applyButton: Button = _
   var showBorders: Button = _
   var applyMcs: Button = _
+  var recrystallizeButton: Button = _
 
   var neighbourhoodSelection: SelectBox[String] = _
-  var boundaryConditionSelection: SelectBox[String] = _
   var fileTypeSelection: SelectBox[String] = _
   var inclusionType: SelectBox[String] = _
   var secondStepSelection: SelectBox[String] = _
@@ -94,6 +96,8 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   val checkBoxStyle = new CheckBox.CheckBoxStyle(drawable1, drawable2, new BitmapFont, Color.WHITE)
 
   grainShapeControl = new CheckBox("Grain shape control", checkBoxStyle)
+  renderEnergy = new CheckBox("Render Energy", checkBoxStyle)
+
   seedButton = new TextButton("Place nucleons", textButtonStyle)
   toggleButton = new TextButton("Play", textButtonStyle)
   clearButton = new TextButton("Clear", textButtonStyle)
@@ -105,6 +109,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   applyButton = new TextButton("Apply", textButtonStyle)
   showBorders = new TextButton("Show borders", textButtonStyle)
   applyMcs = new TextButton("Apply MCS", textButtonStyle)
+  recrystallizeButton = new TextButton("Recrystallize", textButtonStyle)
 
   seedButton.addListener(new ClickListener)
   toggleButton.addListener(new ClickListener)
@@ -117,6 +122,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   applyButton.addListener(new ClickListener)
   showBorders.addListener(new ClickListener)
   applyMcs.addListener(new ClickListener)
+  recrystallizeButton.addListener(new ClickListener)
 
   val selectBoxStyle = new SelectBox.SelectBoxStyle
   selectBoxStyle.font = new BitmapFont
@@ -140,14 +146,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   neighbourhoodSelection.setItems("Moore")
   neighbourhoodSelection.setSelectedIndex(0)
   neighbourhoodSelection.addListener(new ChangeListener() {
-    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = logic.getBoard.setNeighbourhood(logic.getBoard.neighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
-  })
-  boundaryConditionSelection = new SelectBox[String](selectBoxStyle)
-  boundaryConditionSelection.setItems(//"Fixed",
-    "Periodic")
-  boundaryConditionSelection.setSelectedIndex(0)
-  boundaryConditionSelection.addListener(new ChangeListener() {
-    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = logic.getBoard.setNeighbourhood(logic.getBoard.neighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
+    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = logic.getBoard.setNeighbourhood(logic.getBoard.neighborhoods.get(neighbourhoodSelection.getSelectedIndex), logic.getBoard.boundaryConditions.get(0))
   })
 
   fileTypeSelection = new SelectBox[String](selectBoxStyle)
@@ -198,7 +197,6 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(toggleButton).expandX.fill
   table.row
   table.add(neighbourhoodSelection).expandX.fill
-  table.add(boundaryConditionSelection).expandX.fill
   table.row
   table.add(importButton).expandX.fill
   table.add(exportButton).expandX.fill
@@ -230,10 +228,13 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(applyMcs).expandX.fill
   table.row
   table.add(statesAmount).expandX.fill
+  table.add(recrystallizeButton).expandX.fill
+  table.row
+  table.add(renderEnergy)
 
-  naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(300, 300)
+  naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(150, 150)
   logic = naiveSeedsGrowthLogic
-  logic.getBoard.setNeighbourhood(MooreNeighbourHood, logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
+  logic.getBoard.setNeighbourhood(MooreNeighbourHood, logic.getBoard.boundaryConditions.get(0))
 
   override def update(delta: Float): Unit = {
     super.update(delta)
@@ -283,7 +284,7 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     if (nextButton.isPressed && Gdx.input.justTouched) stepsAmount = mcsSteps.getText.toInt
     if (resizeButton.isPressed && Gdx.input.justTouched) {
       logic = new NaiveSeedsGrowthLogic(widthField.getText.toInt, heightField.getText.toInt)
-      logic.getBoard.setNeighbourhood(MooreNeighbourHood, logic.getBoard.boundaryConditions.get(boundaryConditionSelection.getSelectedIndex))
+      logic.getBoard.setNeighbourhood(MooreNeighbourHood, logic.getBoard.boundaryConditions.get(0))
     }
 
     if (importButton.isPressed && Gdx.input.justTouched) logic.board.load(fileTypeSelection.getSelectedIndex)
@@ -296,5 +297,15 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
           logic.board.fillStates(statesAmount.getText.toInt)
       Logic.operationMode = OperationMode.SIMPLE_MCS
     }
+
+    if (recrystallizeButton.isPressed && Gdx.input.justTouched) {
+
+      logic.board.distributeEnergy(EnergyDistributionType.HETEROGENOUS)
+
+    }
+
+    if(renderEnergy.isChecked) renderMode = true
+    else renderMode = false
+
   }
 }

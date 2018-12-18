@@ -1,5 +1,7 @@
 package pl.edu.agh.multiscalemodelling.engine.logic
 
+import pl.edu.agh.multiscalemodelling.engine.logic.enumeration.OperationMode
+
 object Logic {
   var operationMode: OperationMode.Value = OperationMode.SIMPLE_GROWTH
   var allProcessed = false
@@ -32,6 +34,7 @@ abstract class Logic() {
       threads(i) = Logic.operationMode match {
         case OperationMode.SIMPLE_GROWTH => createThread(board, start, end)
         case OperationMode.SIMPLE_MCS => new MonteCarloLogicThread(board.cells.subList(start, end))
+        case OperationMode.RECRYSTALLIZATION_MCS => new RecrystallizationThread(board.cells.subList(start, end))
       }
       threads(i).setName(Integer.toString(i))
       threads(i).start()
