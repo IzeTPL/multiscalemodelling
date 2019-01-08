@@ -5,9 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/all-platforms.iml" filepath="$PROJECT_DIR$/.idea/modules/all-platforms.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/all-platforms-build.iml" filepath="$PROJECT_DIR$/.idea/modules/all-platforms-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/core.iml" filepath="$PROJECT_DIR$/.idea/modules/core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core-build.iml" filepath="$PROJECT_DIR$/.idea/modules/core-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/desktop.iml" filepath="$PROJECT_DIR$/.idea/modules/desktop.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/desktop-build.iml" filepath="$PROJECT_DIR$/.idea/modules/desktop-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/shared-sources.iml" filepath="$PROJECT_DIR$/.idea/modules/shared-sources.iml" />
     </modules>
   </component>

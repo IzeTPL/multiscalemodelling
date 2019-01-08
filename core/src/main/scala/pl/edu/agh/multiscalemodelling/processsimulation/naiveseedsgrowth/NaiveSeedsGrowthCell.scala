@@ -108,7 +108,11 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
       case (State.ALIVE, State.ALIVE) =>
         color = nextColor
         seedID = nextSeedID
-      case _ => println(s"Unhandled state exception: $currentState -> $nextState")
+
+      case (State.ALIVE, State.RECRYSTALLIZED) =>
+        color = nextColor
+        seedID = nextSeedID
+      case _ => //println(s"Unhandled state exception: $currentState -> $nextState")
     }
     super.update()
 
@@ -120,22 +124,26 @@ class NaiveSeedsGrowthCell(x: Int, y: Int) extends Cell(x, y) {
     var energy = 0
     var newEnergy = 0
 
-    if (neighbors.get(0).get(random.nextInt(neighbors.get(0).size)).currentState == State.RECRYSTALLIZED) {
+    val randomNeighbor = neighbors.get(0).get(random.nextInt(neighbors.get(0).size))
+
+    if (randomNeighbor.currentState == State.RECRYSTALLIZED) {
 
       import scala.collection.JavaConversions._
         for (cell <- neighbors.head) {
           if(cell.currentState == State.ALIVE) {
             if (this.seedID != cell.seedID) energy += 1
-            if (seedID != cell.seedID) newEnergy += 1
+            if (randomNeighbor.seedID != cell.seedID) newEnergy += 1
           }
         }
 
       energy += recrystallizationEnergy
 
       if (newEnergy - energy <= 0) {
-        nextSeedID = seedID
+        recrystallizationEnergy = 0
+        nextSeedID = randomNeighbor.seedID
         nextState = State.RECRYSTALLIZED
-        nextColor = NaiveSeedsGrowthCell.seedList.getOrElse(seedID, Color.BLACK)
+        nextColor = NaiveSeedsGrowthCell.seedList.getOrElse(randomNeighbor.seedID, Color.BLACK)
+        //println(s"""Cell at $x,$y energy: $energy newEnergy: $newEnergy ID before: $seedID ID after: $nextSeedID color before: $color color after: $nextColor""")
       }
 
     }

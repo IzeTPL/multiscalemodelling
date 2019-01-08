@@ -25,6 +25,10 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var borderThicknessField: TextField = _
   var statesAmount: TextField = _
   var mcsSteps: TextField = _
+  var energyTextField: TextField = _
+  var boundaryEnergyTextField: TextField = _
+  var nucleonsAmount: TextField = _
+  var nucleonsIncrement: TextField = _
 
   var widthLabel: Label = _
   var heightLabel: Label = _
@@ -32,6 +36,13 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var inclusionAmountLabel: Label = _
   var inclusionSizeLabel: Label = _
   var borderThicknessLabel: Label = _
+  var statesAmountLabel: Label = _
+  var mcsStepsAmount: Label = _
+  var energyDistributionTypeField: Label = _
+  var nucleationModeLabel: Label = _
+  var nucleonsAmountLabel: Label = _
+  var incrementRate: Label = _
+  var nucleonsPlacementLabel: Label = _
 
   var grainShapeControl: CheckBox = _
   var renderEnergy: CheckBox = _
@@ -53,15 +64,26 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   var fileTypeSelection: SelectBox[String] = _
   var inclusionType: SelectBox[String] = _
   var secondStepSelection: SelectBox[String] = _
+  var energyDistributionTypeSelection: SelectBox[String] = _
+  var nucleationMode: SelectBox[String] = _
+  var nucleonsPlacement: SelectBox[String] = _
 
   var stepsAmount: Int = 0
 
   var naiveSeedsGrowthLogic: NaiveSeedsGrowthLogic = _
+
   widthLabel = new Label("width", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   heightLabel = new Label("height", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   inclusionAmountLabel = new Label("Inclusions amount", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   inclusionSizeLabel = new Label("Inclusion size", new Label.LabelStyle(new BitmapFont, Color.WHITE))
   borderThicknessLabel = new Label("Border thickness", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+  statesAmountLabel = new Label("States amount", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+  mcsStepsAmount = new Label("Mcs steps amount", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+  energyDistributionTypeField = new Label("Energy distribution", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+  nucleationModeLabel = new Label("Nucleation mode", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+  nucleonsAmountLabel = new Label("Nucleons amount", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+  incrementRate = new Label("increment rate", new Label.LabelStyle(new BitmapFont, Color.WHITE))
+  nucleonsPlacementLabel = new Label("Placement", new Label.LabelStyle(new BitmapFont, Color.WHITE))
 
   val textFieldStyle = new TextField.TextFieldStyle
   textFieldStyle.font = new BitmapFont
@@ -74,8 +96,16 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   inclusionSizeField = new TextField("2", textFieldStyle)
   rule4ProbabilityField = new TextField("10", textFieldStyle)
   borderThicknessField = new TextField("1", textFieldStyle)
-  statesAmount = new TextField("200", textFieldStyle)
+  statesAmount = new TextField("3", textFieldStyle)
   mcsSteps = new TextField("100", textFieldStyle)
+  energyTextField = new TextField("4", textFieldStyle)
+  boundaryEnergyTextField = new TextField("7", textFieldStyle)
+  nucleonsAmount = new TextField("10", textFieldStyle)
+  nucleonsIncrement = new TextField("10", textFieldStyle)
+
+  boundaryEnergyTextField.setVisible(false)
+  nucleonsIncrement.setVisible(false)
+  incrementRate.setVisible(false)
 
   val textButtonStyle = new TextButton.TextButtonStyle
   textButtonStyle.font = new BitmapFont
@@ -156,26 +186,52 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   inclusionType = new SelectBox[String](selectBoxStyle)
   inclusionType.setItems("Circle", "Square")
   inclusionType.setSelectedIndex(0)
-  inclusionType.addListener(new ChangeListener {
-    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = inclusionType.getSelectedIndex match {
-      case 0 =>
-      case 1 =>
-    }
-  })
 
   secondStepSelection = new SelectBox[String](selectBoxStyle)
   secondStepSelection.setItems("Substructure", "Dualphase")
   secondStepSelection.setSelectedIndex(0)
-  secondStepSelection.addListener(new ChangeListener {
-    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = secondStepSelection.getSelectedIndex match {
-      case 0 =>
-      case 1 =>
-    }
-  })
 
   grainBoundaryRenderType = new SelectBox[String](selectBoxStyle)
   grainBoundaryRenderType.setItems("All","Selected")
   grainBoundaryRenderType.setSelectedIndex(0)
+
+  energyDistributionTypeSelection = new SelectBox[String](selectBoxStyle)
+  energyDistributionTypeSelection.setItems("Homogenous", "Heterogenous")
+  energyDistributionTypeSelection.setSelectedIndex(0)
+  energyDistributionTypeSelection.addListener(new ChangeListener {
+    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = energyDistributionTypeSelection.getSelectedIndex match {
+
+      case 0 => boundaryEnergyTextField.setVisible(false)
+      case 1 => boundaryEnergyTextField.setVisible(true)
+
+    }
+  })
+
+  nucleationMode = new SelectBox[String](selectBoxStyle)
+  nucleationMode.setItems("Fixed amount", "Constant", "Increasing")
+  nucleationMode.setSelectedIndex(0)
+  nucleationMode.addListener(new ChangeListener {
+    override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = nucleationMode.getSelectedIndex match {
+
+      case 0 => {
+        incrementRate.setVisible(false)
+        nucleonsIncrement.setVisible(false)
+      }
+      case 1 => {
+        incrementRate.setVisible(false)
+        nucleonsIncrement.setVisible(false)
+      }
+      case 2 => {
+        incrementRate.setVisible(true)
+        nucleonsIncrement.setVisible(true)
+      }
+
+    }
+  })
+
+  nucleonsPlacement = new SelectBox[String](selectBoxStyle)
+  nucleonsPlacement.setItems("Anywhere", "Grain boundaries")
+  nucleonsPlacement.setSelectedIndex(0)
 
   rule4ProbabilityField.addListener(new ChangeListener {
     override def changed(event: ChangeListener.ChangeEvent, actor: Actor): Unit = if(!rule4ProbabilityField.getText.isEmpty) NaiveSeedsGrowthCell.probability = rule4ProbabilityField.getText.toInt
@@ -224,15 +280,37 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
   table.add(secondStepSelection).expandX.fill
   table.add(applyButton).expandX.fill
   table.row
+  table.add(mcsStepsAmount).expandX.fill
   table.add(mcsSteps).expandX.fill
+  table.row
+  table.add(statesAmountLabel).expandX.fill
+  table.add(statesAmount).expandX.fill
+  table.row
   table.add(applyMcs).expandX.fill
   table.row
-  table.add(statesAmount).expandX.fill
+  table.add(energyDistributionTypeField).fill.expandX
+  table.add(energyDistributionTypeSelection).fill.expandX
+  table.row
+  table.add(energyTextField).expandX.fill
+  table.add(boundaryEnergyTextField).expandX.fill
+  table.row
+  table.add(nucleationModeLabel).expandX.fill
+  table.add(nucleationMode).expandX.fill
+  table.row
+  table.add(nucleonsAmountLabel).expandX.fill
+  table.add(nucleonsAmount).expandX.fill
+  table.row
+  table.add(incrementRate).expandX.fill
+  table.add(nucleonsIncrement).expandX.fill
+  table.row
+  table.add(nucleonsPlacementLabel).expandX.fill
+  table.add(nucleonsPlacement).expandX.fill
+  table.row
   table.add(recrystallizeButton).expandX.fill
   table.row
-  table.add(renderEnergy)
+  table.add(renderEnergy).expandX.fill
 
-  naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(150, 150)
+  naiveSeedsGrowthLogic = new NaiveSeedsGrowthLogic(300, 300)
   logic = naiveSeedsGrowthLogic
   logic.getBoard.setNeighbourhood(MooreNeighbourHood, logic.getBoard.boundaryConditions.get(0))
 
@@ -245,17 +323,21 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     super.render(delta)
     NaiveSeedsGrowthCell.grainShapeControl = grainShapeControl.isChecked
     update(delta)
+
     if (Logic.allProcessed) logic.isPaused = true
+
+    if (!logic.isPaused && stepsAmount == 0) {
+      logic.started = true
+      logic.iterate()
+    }
+
     if(stepsAmount > 0) {
       logic.started = true
       logic.iterate()
       stepsAmount -= 1
       logic.isPaused = true
     }
-    if (!logic.isPaused) {
-      logic.started = true
-      logic.iterate()
-    }
+
     handleInput()
   }
 
@@ -294,13 +376,25 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     if (showBorders.isPressed && Gdx.input.justTouched) logic.board.addBorders(grainBoundaryRenderType.getSelectedIndex)
     if (applyMcs.isPressed && Gdx.input.justTouched) {
       //if(!logic.started)
-          logic.board.fillStates(statesAmount.getText.toInt)
+      logic.board.fillStates(statesAmount.getText.toInt)
       Logic.operationMode = OperationMode.SIMPLE_MCS
     }
 
     if (recrystallizeButton.isPressed && Gdx.input.justTouched) {
 
-      logic.board.distributeEnergy(EnergyDistributionType.HETEROGENOUS)
+      energyDistributionTypeSelection.getSelectedIndex match {
+
+        case 0 => logic.board.distributeEnergy(EnergyDistributionType.HOMOGENOUS, energyTextField.getText.toInt)
+        case 1 => logic.board.distributeEnergy(EnergyDistributionType.HETEROGENOUS, energyTextField.getText.toInt, boundaryEnergyTextField.getText.toInt)
+
+      }
+
+      logic.board.placeRecrystallizationNucleons(nucleonsPlacement.getSelectedIndex, nucleonsAmount.getText.toInt)
+
+      Logic.operationMode = OperationMode.RECRYSTALLIZATION_MCS
+      logic.isPaused = false
+      logic.started = false
+      Logic.allProcessed = false
 
     }
 
@@ -308,4 +402,5 @@ class SimulationScreen(application: Application) extends AbstractScreen(applicat
     else renderMode = false
 
   }
+
 }

@@ -45,7 +45,7 @@ abstract class Board() {
 
   }
 
-  def distributeEnergy(energyDistributionType: EnergyDistributionType): Unit = {
+  def distributeEnergy(energyDistributionType: EnergyDistributionType, energy: Int, boundaryEnergy: Int = 0): Unit = {
 
     import scala.collection.JavaConversions._
 
@@ -55,40 +55,42 @@ abstract class Board() {
         case EnergyDistributionType.HETEROGENOUS => {
 
           var sameID = 0
-          import scala.collection.JavaConversions._
-          /*         for (neighbor <- cell.neighbors.head) {
-            if (Objects.equals(cell.color, neighbor.color)) {
-              sameID += 1
-              sameID - 1
-            }
-          }*/
 
           if (!Objects.equals(cell.color, cell.neighbors.head.get(0).color)) sameID += 1
           if (!Objects.equals(cell.color, cell.neighbors.head.get(1).color)) sameID += 1
           if (!Objects.equals(cell.color, cell.neighbors.head.get(3).color)) sameID += 1
 
-          if (sameID > 0) cell.recrystallizationEnergy = 7
-          else cell.recrystallizationEnergy = 2
+          if (sameID > 0) cell.recrystallizationEnergy = boundaryEnergy
+          else cell.recrystallizationEnergy = energy
 
         }
-        case EnergyDistributionType.HOMOGENOUS => cell.recrystallizationEnergy = 5
+        case EnergyDistributionType.HOMOGENOUS => cell.recrystallizationEnergy = energy
       }
 
     }
 
-      val random = new Random
-      var i = 0
-      while (i < 100) {
-        val cell = cells.get(random.nextInt(size.x * size.y))
-        randomRecrystallizationNucleation(cell, random)
-        if(cell.nextState == State.ALIVE ){
-          i+=1
-          i - 1
-        }
-        cell.update()
+  }
+
+  def placeRecrystallizationNucleons(placement: Int, amount: Int): Unit = {
+
+    val random = new Random
+    var i = 0
+    while (i < amount) {
+      val cell = cells.get(random.nextInt(size.x * size.y))
+
+      placement match {
+        case 0 => randomRecrystallizationNucleation(cell, random)
+        case 1 => grainBoundaryRecrystallizationNucleation(cell, random)
       }
 
-    Logic.operationMode = OperationMode.RECRYSTALLIZATION_MCS
+      if(cell.nextState == State.RECRYSTALLIZED){
+        cell.recrystallizationEnergy = 0
+        i+=1
+      }
+
+      cell.update()
+
+    }
 
   }
 
@@ -99,8 +101,8 @@ abstract class Board() {
     if (cell.nextState eq State.RECRYSTALLIZED) {
       var color = new Color(random.nextFloat, 0, 0, 1)
       while ( {
-        color.r < 0.2f
-      }) color = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
+        color.r < 0.005f
+      }) color = new Color(random.nextFloat, 0, 0, 1)
       cell.nextColor = color
       cell.nextState = State.RECRYSTALLIZED
       cell.asInstanceOf[NaiveSeedsGrowthCell].nextSeedID = {
@@ -111,8 +113,39 @@ abstract class Board() {
         NaiveSeedsGrowthBoard.newID,
         color
       )
-      ()
     }
+  }
+
+  def grainBoundaryRecrystallizationNucleation(cell: Cell, random: Random): Unit = {
+
+    var sameID = 0
+    import scala.collection.JavaConversions._
+    for (neighbour <- cell.neighbors.head) {
+      if (neighbour.seedID == cell.seedID) {
+        sameID += 1
+        sameID - 1
+      }
+    }
+
+    if (cell.currentState == State.ALIVE && sameID != cell.neighbors.head.size()) cell.nextState = State.RECRYSTALLIZED
+
+    if (cell.nextState eq State.RECRYSTALLIZED) {
+      var color = new Color(random.nextFloat, 0, 0, 1)
+      while ( {
+        color.r < 0.005f
+      }) color = new Color(random.nextFloat, 0, 0, 1)
+      cell.nextColor = color
+      cell.nextState = State.RECRYSTALLIZED
+      cell.asInstanceOf[NaiveSeedsGrowthCell].nextSeedID = {
+        NaiveSeedsGrowthBoard.newID += 1
+        NaiveSeedsGrowthBoard.newID
+      }
+      NaiveSeedsGrowthCell.getSeedList.put(
+        NaiveSeedsGrowthBoard.newID,
+        color
+      )
+    }
+
   }
 
   def fillStates(statesAmount: Int): Unit = {
@@ -123,7 +156,7 @@ abstract class Board() {
 
     var i = 0
     while ( {
-      i < statesAmount
+      i <= statesAmount
     }) {
 
       var color = new Color(random.nextFloat, random.nextFloat, random.nextFloat, 1)
@@ -172,9 +205,16 @@ abstract class Board() {
 
       if (renderMode) {
 
-        val color: Float = (255-0)/(7-2)*(cell.recrystallizationEnergy-7)+255
+        if(cell.recrystallizationEnergy != 0) {
 
-        board.setColor(new Color(0, color, 255 - color, 1))
+          val color: Float = (255 - 0) / (7 - 2) * (cell.recrystallizationEnergy - 7) + 255
+          board.setColor(new Color(0, color, 255 - color, 1))
+
+        } else {
+
+          board.setColor(new Color(1, 0, 0, 1))
+
+        }
 
       } else {
         board.setColor(cell.color)

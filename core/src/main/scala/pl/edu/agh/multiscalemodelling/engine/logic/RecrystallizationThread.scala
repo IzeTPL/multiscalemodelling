@@ -2,6 +2,7 @@ package pl.edu.agh.multiscalemodelling.engine.logic
 
 import java.util
 import java.util.Random
+import java.util.function.Predicate
 
 import pl.edu.agh.multiscalemodelling.engine.logic.enumeration.{OperationMode, State}
 import pl.edu.agh.multiscalemodelling.processsimulation.naiveseedsgrowth.NaiveSeedsGrowthCell
@@ -11,6 +12,11 @@ class RecrystallizationThread(val cells: util.List[NaiveSeedsGrowthCell]) extend
   override def run(): Unit = {
 
     val cells = new util.ArrayList[NaiveSeedsGrowthCell](this.cells)
+
+    cells.removeIf(
+      new Predicate[NaiveSeedsGrowthCell] {
+        override def test(cell: NaiveSeedsGrowthCell): Boolean = cell.toRemove
+      })
 
     val random = new Random
 
